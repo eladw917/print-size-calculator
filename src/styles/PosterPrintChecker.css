@@ -1,0 +1,275 @@
+html {
+  font-size: 10px; /* 1rem = 10px */
+}
+
+.container {
+  max-width: 60rem; /* 600px */
+  margin-top:5rem;
+  margin: 5rem auto 0 auto;
+  padding: 2.4rem; /* 24px */
+  background-color: white;
+  border-radius: 0.8rem; /* 8px */
+  box-shadow: 0 0.4rem 0.6rem rgba(0, 0, 0, 0.1); /* 4px 6px */
+  color: black;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.6rem; /* 16px */
+}
+
+.header h1 {
+  font-size: 2.4rem; /* 24px */
+  font-weight: bold;
+}
+
+.btn {
+  padding: 0.8rem 1.6rem; /* 8px 16px */
+  border: 0.1rem solid black; /* 1px */
+  border-radius: 0.4rem; /* 4px */
+  cursor: pointer;
+}
+
+.btn.outline {
+  background-color: white;
+  color: black;
+}
+
+.btn.default {
+  background-color: black;
+  color: white;
+}
+
+.btn.sm {
+  font-size: 1.2rem; /* 12px */
+}
+
+.btn.xs {
+  font-size: 1rem; /* 10px */
+}
+
+.input {
+  width: 100%;
+  padding: 0.8rem; /* 8px */
+  border: 0.1rem solid #ccc; /* 1px */
+  border-radius: 0.4rem; /* 4px */
+}
+
+.label {
+  font-weight: bold;
+}
+
+.dropzone {
+  border: 0.2rem dashed #ccc; /* 2px */
+  border-radius: 0.8rem; /* 8px */
+  padding: 1.6rem; /* 16px */
+  text-align: center;
+  cursor: pointer;
+}
+
+.dropzone.dragging {
+  border-color: #007bff;
+  background-color: #e9f7ff;
+}
+
+.dropzone-label {
+  cursor: pointer;
+}
+
+.icon {
+  margin-right: 0.8rem; /* 8px */
+  height: 1.6rem; /* 16px */
+  width: 1.6rem; /* 16px */
+}
+
+.preview {
+  margin-top: 1.6rem; /* 16px */
+}
+
+.preview h2 {
+  font-size: 1.8rem; /* 18px */
+  font-weight: bold;
+  margin-bottom: 0.8rem; /* 8px */
+}
+
+.preview-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.8rem; /* 8px */
+}
+
+.result {
+  margin-top: 1.6rem; /* 16px */
+  padding: 1.6rem; /* 16px */
+  border-radius: 0.8rem; /* 8px */
+}
+
+.result.suitable {
+  background-color: #d4edda;
+}
+
+.result.not-suitable {
+  background-color: #f8d7da;
+}
+
+.result-content {
+  display: flex;
+  align-items: center;
+}
+
+.suitable-icon {
+  color: #28a745;
+}
+
+.not-suitable-icon {
+  color: #dc3545;
+}
+
+.analysis {
+  margin-top: 2.4rem; /* 24px */
+}
+
+.analysis h2 {
+  font-size: 2rem; /* 20px */
+  font-weight: bold;
+  margin-bottom: 0.8rem; /* 8px */
+}
+
+.analysis h3 {
+  font-size: 1.8rem; /* 18px */
+  font-weight: bold;
+  margin-top: 1.6rem; /* 16px */
+  margin-bottom: 0.8rem; /* 8px */
+}
+
+.dpi-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem; /* 8px */
+}
+
+.dpi-button {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.8rem; /* 8px */
+  border: 0.1rem solid black; /* 1px */
+  border-radius: 0.4rem; /* 4px */
+  cursor: pointer;
+}
+
+.dpi-button.selected {
+  background-color: black;
+  color: white;
+}
+
+.size-buttons {
+  margin-top: 1.6rem; /* 16px */
+}
+
+.size-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem; /* 8px */
+}
+
+.size-button {
+  padding: 0.8rem; /* 8px */
+  border: 0.1rem solid black; /* 1px */
+  border-radius: 0.4rem; /* 4px */
+  cursor: pointer;
+}
+
+.size-button.selected {
+  background-color: black;
+  color: white;
+}
+
+.custom-size {
+  margin-top: 1.6rem; /* 16px */
+}
+
+.custom-size-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem; /* 8px */
+}
+
+.unit-buttons {
+  display: flex;
+  gap: 0.8rem; /* 8px */
+  margin-top: 0.8rem; /* 8px */
+}
+
+.analysis-results {
+  margin-top: 1.6rem; /* 16px */
+  padding: 1.6rem; /* 16px */
+  background-color: #f8f9fa;
+  border-radius: 0.8rem; /* 8px */
+}
+
+.quality-bar {
+  display: flex;
+  align-items: center;
+  margin-top: 0.8rem; /* 8px */
+}
+
+.quality-bar-container {
+  flex: 1;
+  background-color: #e9ecef;
+  border-radius: 0.4rem; /* 4px */
+  height: 1rem; /* 10px */
+  margin-right: 0.8rem; /* 8px */
+}
+
+.quality-bar-fill {
+  background-color: #007bff;
+  height: 100%;
+  border-radius: 0.4rem; /* 4px */
+}
+
+/* Media Queries for Responsiveness */
+@media (max-width: 768px) {
+  .container {
+    padding: 1.6rem; /* 16px */
+  }
+
+  .header h1 {
+    font-size: 2rem; /* 20px */
+  }
+
+  .btn {
+    padding: 0.6rem 1.2rem; /* 6px 12px */
+  }
+
+  .btn.sm {
+    font-size: 1rem; /* 10px */
+  }
+
+  .btn.xs {
+    font-size: 0.8rem; /* 8px */
+  }
+
+  .preview h2 {
+    font-size: 1.6rem; /* 16px */
+  }
+
+  .analysis h2 {
+    font-size: 1.8rem; /* 18px */
+  }
+
+  .analysis h3 {
+    font-size: 1.6rem; /* 16px */
+  }
+
+  .size-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .custom-size-inputs {
+    grid-template-columns: 1fr;
+  }
+}
