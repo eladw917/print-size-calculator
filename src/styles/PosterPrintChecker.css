@@ -1,16 +1,58 @@
+/* CSS Reset */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Arial', sans-serif;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
 html {
   font-size: 10px; /* 1rem = 10px */
 }
 
+.navbar {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 1rem 2rem;
+  color: white;
+}
+
+.navbar-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.navbar-title {
+  font-size: 2.4rem; /* 24px */
+  font-weight: bold;
+}
+
+.navbar-links {
+  list-style: none;
+  display: flex;
+  gap: 2rem;
+}
+
+.navbar-links a {
+  color: white;
+  text-decoration: none;
+  font-size: 1.6rem; /* 16px */
+}
+
 .container {
-  max-width: 60rem; /* 600px */
-  margin-top:5rem;
-  margin: 5rem auto 0 auto;
-  padding: 2.4rem; /* 24px */
-  background-color: white;
+  margin-top: 5rem;
+  padding: 2.4rem;
+  display: grid;
   border-radius: 0.8rem; /* 8px */
   box-shadow: 0 0.4rem 0.6rem rgba(0, 0, 0, 0.1); /* 4px 6px */
   color: black;
+  background: white;
 }
 
 .header {
@@ -30,6 +72,7 @@ html {
   border: 0.1rem solid black; /* 1px */
   border-radius: 0.4rem; /* 4px */
   cursor: pointer;
+  transition: background-color 0.3s, color 0.3s;
 }
 
 .btn.outline {
@@ -50,11 +93,26 @@ html {
   font-size: 1rem; /* 10px */
 }
 
+.btn:hover {
+  background-color: #764ba2;
+  color: white;
+}
+
+.main-container {
+  display: flex;
+  justify-content: space-between;
+}
+
+.calc-container, .explenation-container {
+  width: 48%;
+}
+
 .input {
   width: 100%;
   padding: 0.8rem; /* 8px */
   border: 0.1rem solid #ccc; /* 1px */
   border-radius: 0.4rem; /* 4px */
+  margin-bottom: 1.6rem; /* 16px */
 }
 
 .label {
@@ -64,28 +122,43 @@ html {
 .dropzone {
   border: 0.2rem dashed #ccc; /* 2px */
   border-radius: 0.8rem; /* 8px */
-  padding: 1.6rem; /* 16px */
+  padding: 2.4rem; /* 24px */
   text-align: center;
+  transition: background-color 0.3s, border-color 0.3s;
   cursor: pointer;
 }
 
 .dropzone.dragging {
-  border-color: #007bff;
-  background-color: #e9f7ff;
+  background-color: #e0e0e0;
+  border-color: #333;
 }
 
 .dropzone-label {
   cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #333;
 }
 
-.icon {
-  margin-right: 0.8rem; /* 8px */
-  height: 1.6rem; /* 16px */
-  width: 1.6rem; /* 16px */
+.dropzone-label .icon {
+  font-size: 3.2rem; /* 32px */
+  margin-bottom: 1.2rem; /* 12px */
+  color: #667eea;
+}
+
+.dropzone-label p {
+  font-size: 1.6rem; /* 16px */
+  color: #333;
+}
+
+.dropzone:hover {
+  background-color: #e0e0e0;
+  border-color: #667eea;
 }
 
 .preview {
-  margin-top: 1.6rem; /* 16px */
+  margin-top: 2.4rem; /* 24px */
 }
 
 .preview h2 {
@@ -101,17 +174,21 @@ html {
 }
 
 .result {
-  margin-top: 1.6rem; /* 16px */
+  margin-top: 2.4rem; /* 24px */
   padding: 1.6rem; /* 16px */
-  border-radius: 0.8rem; /* 8px */
+  border-radius: 0.4rem; /* 4px */
+  display: flex;
+  align-items: center;
 }
 
 .result.suitable {
-  background-color: #d4edda;
+  background-color: #e0ffe0;
+  border: 0.1rem solid #00cc00; /* 1px */
 }
 
 .result.not-suitable {
-  background-color: #f8d7da;
+  background-color: #ffe0e0;
+  border: 0.1rem solid #cc0000; /* 1px */
 }
 
 .result-content {
@@ -120,11 +197,11 @@ html {
 }
 
 .suitable-icon {
-  color: #28a745;
+  color: #00cc00;
 }
 
 .not-suitable-icon {
-  color: #dc3545;
+  color: #cc0000;
 }
 
 .analysis {
@@ -219,7 +296,7 @@ html {
 
 .quality-bar-container {
   flex: 1;
-  background-color: #e9ecef;
+  background-color: #f0f0f0;
   border-radius: 0.4rem; /* 4px */
   height: 1rem; /* 10px */
   margin-right: 0.8rem; /* 8px */
@@ -272,4 +349,104 @@ html {
   .custom-size-inputs {
     grid-template-columns: 1fr;
   }
+}
+
+@media (min-width: 1000px) {
+  .main-container {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .calc-container, .explenation-container {
+    width: 48%;
+  }
+}
+
+.explenation-container {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  padding: 2.4rem; /* 24px */
+  border-radius: 0.8rem; /* 8px */
+  box-shadow: 0 0.4rem 0.6rem rgba(0, 0, 0, 0.1); /* 4px 6px */
+  font-size: 1.6rem; /* 16px */
+  line-height: 1.6; /* 160% */
+  color: #333;
+}
+
+.explenation-container h2 {
+  font-size: 2.4rem; /* 24px */
+  margin-bottom: 1.6rem; /* 16px */
+}
+
+.explenation-container p, .explenation-container ol {
+  margin-bottom: 1.6rem; /* 16px */
+}
+
+.explenation-container ol {
+  padding-left: 2.4rem; /* 24px */
+}
+
+.explenation-container li {
+  margin-bottom: 0.8rem; /* 8px */
+}
+
+.calc-container {
+  background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%);
+  padding: 2.4rem; /* 24px */
+  border-radius: 0.8rem; /* 8px */
+  box-shadow: 0 0.4rem 0.6rem rgba(0, 0, 0, 0.1); /* 4px 6px */
+  font-size: 1.6rem; /* 16px */
+  line-height: 1.6; /* 160% */
+  color: #333;
+}
+
+.calc-container h2, .calc-container h3, .calc-container h4 {
+  font-size: 2.4rem; /* 24px */
+  margin-bottom: 1.6rem; /* 16px */
+}
+
+.calc-container p, .calc-container label {
+  margin-bottom: 1.6rem; /* 16px */
+}
+
+.calc-container .dpi-buttons, .calc-container .size-buttons, .calc-container .custom-size {
+  margin-bottom: 2.4rem; /* 24px */
+}
+
+.calc-container .quality-bar {
+  margin-top: 1.6rem; /* 16px */
+}
+
+.file-input-hidden {
+  display: none;
+}
+
+.file-btn {
+  margin-top: 1rem; /* 10px */
+  padding: 0.8rem 1.6rem; /* 8px 16px */
+  border: 0.1rem solid black; /* 1px */
+  border-radius: 0.4rem; /* 4px */
+  background-color: #667eea;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.file-btn:hover {
+  background-color: #764ba2;
+  color: white;
+}
+.reset-btn {
+  margin-bottom: 1rem; /* 10px */
+  padding: 0.8rem 1.6rem; /* 8px 16px */
+  border: 0.1rem solid black; /* 1px */
+  border-radius: 0.4rem; /* 4px */
+  background-color: #667eea;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.reset-btn:hover {
+  background-color: #764ba2;
+  color: white;
 }

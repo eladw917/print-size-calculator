@@ -161,183 +161,218 @@ const PosterPrintChecker = () => {
         <meta name="robots" content="index, follow" />
         <link rel="canonical" href="https://printsizecalculator.com/" />
       </Helmet>
+      <nav className="navbar">
+        <div className="navbar-container">
+          <h1 className="navbar-title">Print Size Calculator</h1>
+          <ul className="navbar-links">
+            <li><a href="#home">Home</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#contact">Contact</a></li>
+          </ul>
+        </div>
+      </nav>
       <div className="container">
-        <div className="header">
-          <h1>Poster Print Checker</h1>
-          <button onClick={handleReset} className="btn outline sm">
-            <RefreshCw className="icon" /> Reset
-          </button>
-        </div>
-        <p>Upload an image to check if it's suitable for poster printing.</p>
-        
-        <div 
-          className={`dropzone ${isDragging ? 'dragging' : ''}`}
-          onDragEnter={handleDragEnter}
-          onDragLeave={handleDragLeave}
-          onDragOver={handleDragOver}
-          onDrop={handleDrop}
-        >
-          <input 
-            type="file" 
-            accept="image/*"
-            onChange={(e) => e.target.files && e.target.files[0] && handleFile(e.target.files[0])}
-            className="hidden"
-            id="fileInput"
-          />
-          <label htmlFor="fileInput" className="dropzone-label">
-            <Upload className="icon" />
-            <p>Drag and drop an image here, or click to select a file</p>
-          </label>
-        </div>
+        <div className="main-container">
+          <div className="calc-container">
+            <button 
+              type="button" 
+              className="btn reset-btn"
+              onClick={handleReset}
+            >
+              Reset
+            </button>
+            <p>Upload an image to check if it's suitable for poster printing.</p>
+            <div 
+              className={`dropzone ${isDragging ? 'dragging' : ''}`}
+              onDragEnter={handleDragEnter}
+              onDragLeave={handleDragLeave}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+            >
+              <input 
+                type="file" 
+                accept="image/*"
+                onChange={(e) => e.target.files && e.target.files[0] && handleFile(e.target.files[0])}
+                className="file-input-hidden"
+                id="fileInput"
+              />
+              <label htmlFor="fileInput" className="dropzone-label">
+                <Upload className="icon" />
+                <p>Drag and drop an image here, or click to select a file</p>
+                <button 
+                  type="button" 
+                  className="btn file-btn"
+                  onClick={() => document.getElementById('fileInput').click()}
+                >
+                  Choose File
+                </button>
+              </label>
+            </div>
 
-        {previewUrl && (
-          <div className="preview">
-            <h2>Image Preview</h2>
-            <img src={previewUrl} alt="Preview" className="preview-image" />
+            {previewUrl && (
+              <div className="preview">
+                <h2>Image Preview</h2>
+                <img src={previewUrl} alt="Preview" className="preview-image" />
+              </div>
+            )}
+
+            {result && (
+              <>
+                <div className={`result ${result.suitable ? 'suitable' : 'not-suitable'}`}>
+                  <div className="result-content">
+                    <AlertCircle className={`icon ${result.suitable ? 'suitable-icon' : 'not-suitable-icon'}`} />
+                    <p>
+                      {result.suitable 
+                        ? "This image is suitable for poster printing!" 
+                        : "This image might not be suitable for large poster prints. Consider using a higher resolution image."}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="analysis">
+                  <h2>Image Analysis</h2>
+                  <p>Dimensions: {result.width}x{result.height} pixels</p>
+                  <p>Aspect Ratio: {result.aspectRatio}</p>
+                  <p>Megapixels: {result.megapixels}</p>
+                  
+                  <h3>Poster Print Calculator</h3>
+                  
+                  <div className="dpi-buttons">
+                    <label className="flex items-center">
+                      DPI:
+                      <div className="tooltip">
+                        <div className="tooltip-trigger">
+                          <Info className="icon" />
+                        </div>
+                        <div className="tooltip-content">
+                          <p>DPI (Dots Per Inch) affects print quality. Higher DPI generally means better quality.</p>
+                        </div>
+                      </div>
+                    </label>
+                    {[150, 300, 600].map((dpi) => (
+                      <button 
+                        key={dpi}
+                        className={`btn xs ${selectedDPI === dpi && selectedSize === null ? 'default' : 'outline'}`}
+                        onClick={() => {
+                          setSelectedDPI(dpi);
+                          setSelectedSize(null);
+                        }}
+                      >
+                        <div>{dpi}</div>
+                        <div>{dpi === 150 ? "(Standard)" : dpi === 300 ? "(High)" : "(Ultra-High)"}</div>
+                      </button>
+                    ))}
+                    {analysis && (
+                      <button 
+                        className={`btn xs ${selectedSize !== null ? 'default' : 'outline'}`}
+                        onClick={() => {
+                          setSelectedSize(selectedSize === null ? 0 : selectedSize);
+                          setSelectedDPI(parseInt(analysis.maxDpi));
+                        }}
+                      >
+                        <div>{analysis.maxDpi}</div>
+                        <div>{analysis.maxDpi ? "(Max)" : 'Max DPI'}</div>
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="size-buttons">
+                    <label>Select Poster Size:</label>
+                    <div className="size-grid">
+                      {COMMON_SIZES.map((size, index) => (
+                        <button
+                          key={size.name}
+                          className={`btn xs ${selectedSize === index ? 'default' : 'outline'}`}
+                          onClick={() => setSelectedSize(index)}
+                        >
+                          <span className="text-left">
+                            {size.width}" x {size.height}" ({size.widthCm} cm x {size.heightCm} cm)
+                          </span>
+                        </button>
+                      ))}
+                      <button
+                        className={`btn xs ${selectedSize === 'custom' ? 'default' : 'outline'}`}
+                        onClick={() => setSelectedSize('custom')}
+                      >
+                        Custom
+                      </button>
+                    </div>
+                  </div>
+
+                  {selectedSize === 'custom' && (
+                    <div className="custom-size">
+                      <div className="custom-size-inputs">
+                        <div>
+                          <input 
+                            type="number"
+                            value={customWidth}
+                            onChange={(e) => setCustomWidth(e.target.value)}
+                            placeholder="Width"
+                            className="input"
+                          />
+                        </div>
+                        <div>
+                          <input 
+                            type="number"
+                            value={customHeight}
+                            onChange={(e) => setCustomHeight(e.target.value)}
+                            placeholder="Height"
+                            className="input"
+                          />
+                        </div>
+                      </div>
+                      <div className="unit-buttons">
+                        <button 
+                          className={`btn sm ${customUnit === 'inches' ? 'default' : 'outline'}`}
+                          onClick={() => setCustomUnit('inches')}
+                        >
+                          Inches
+                        </button>
+                        <button 
+                          className={`btn sm ${customUnit === 'cm' ? 'default' : 'outline'}`}
+                          onClick={() => setCustomUnit('cm')}
+                        >
+                          Centimeters
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  {analysis && (
+                    <div className="analysis-results">
+                      <h4>Analysis Results:</h4>
+                      <p>Print Size: {analysis.width}" x {analysis.height}" ({analysis.widthCm} cm x {analysis.heightCm} cm)</p>
+                      <p>Effective DPI: {analysis.dpi}</p>
+                      <div className="quality-bar">
+                        <label>Print Quality:</label>
+                        <div className="quality-bar-container">
+                          <div 
+                            className="quality-bar-fill" 
+                            style={{width: `${analysis.qualityScore}%`}}
+                          ></div>
+                        </div>
+                        <span>{analysis.quality} ({analysis.qualityScore}%)</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
           </div>
-        )}
-
-        {result && (
-          <>
-            <div className={`result ${result.suitable ? 'suitable' : 'not-suitable'}`}>
-              <div className="result-content">
-                <AlertCircle className={`icon ${result.suitable ? 'suitable-icon' : 'not-suitable-icon'}`} />
-                <p>
-                  {result.suitable 
-                    ? "This image is suitable for poster printing!" 
-                    : "This image might not be suitable for large poster prints. Consider using a higher resolution image."}
-                </p>
-              </div>
-            </div>
-
-            <div className="analysis">
-              <h2>Image Analysis</h2>
-              <p>Dimensions: {result.width}x{result.height} pixels</p>
-              <p>Aspect Ratio: {result.aspectRatio}</p>
-              <p>Megapixels: {result.megapixels}</p>
-              
-              <h3>Poster Print Calculator</h3>
-              
-              <div className="dpi-buttons">
-                <label className="flex items-center">
-                  DPI:
-                  <div className="tooltip">
-                    <div className="tooltip-trigger">
-                      <Info className="icon" />
-                    </div>
-                    <div className="tooltip-content">
-                      <p>DPI (Dots Per Inch) affects print quality. Higher DPI generally means better quality.</p>
-                    </div>
-                  </div>
-                </label>
-                {[150, 300, 600].map((dpi) => (
-                  <button 
-                    key={dpi}
-                    className={`btn xs ${selectedDPI === dpi && selectedSize === null ? 'default' : 'outline'}`}
-                    onClick={() => {
-                      setSelectedDPI(dpi);
-                      setSelectedSize(null);
-                    }}
-                  >
-                    <div>{dpi}</div>
-                    <div>{dpi === 150 ? "(Standard)" : dpi === 300 ? "(High)" : "(Ultra-High)"}</div>
-                  </button>
-                ))}
-                {analysis && (
-                  <button 
-                    className={`btn xs ${selectedSize !== null ? 'default' : 'outline'}`}
-                    onClick={() => {
-                      setSelectedSize(selectedSize === null ? 0 : selectedSize);
-                      setSelectedDPI(parseInt(analysis.maxDpi));
-                    }}
-                  >
-                    <div>{analysis.maxDpi}</div>
-                    <div>{analysis.maxDpi ? "(Max)" : 'Max DPI'}</div>
-                  </button>
-                )}
-              </div>
-
-              <div className="size-buttons">
-                <label>Select Poster Size:</label>
-                <div className="size-grid">
-                  {COMMON_SIZES.map((size, index) => (
-                    <button
-                      key={size.name}
-                      className={`btn xs ${selectedSize === index ? 'default' : 'outline'}`}
-                      onClick={() => setSelectedSize(index)}
-                    >
-                      <span className="text-left">
-                        {size.width}" x {size.height}" ({size.widthCm} cm x {size.heightCm} cm)
-                      </span>
-                    </button>
-                  ))}
-                  <button
-                    className={`btn xs ${selectedSize === 'custom' ? 'default' : 'outline'}`}
-                    onClick={() => setSelectedSize('custom')}
-                  >
-                    Custom
-                  </button>
-                </div>
-              </div>
-
-              {selectedSize === 'custom' && (
-                <div className="custom-size">
-                  <div className="custom-size-inputs">
-                    <div>
-                      <input 
-                        type="number"
-                        value={customWidth}
-                        onChange={(e) => setCustomWidth(e.target.value)}
-                        placeholder="Width"
-                        className="input"
-                      />
-                    </div>
-                    <div>
-                      <input 
-                        type="number"
-                        value={customHeight}
-                        onChange={(e) => setCustomHeight(e.target.value)}
-                        placeholder="Height"
-                        className="input"
-                      />
-                    </div>
-                  </div>
-                  <div className="unit-buttons">
-                    <button 
-                      className={`btn sm ${customUnit === 'inches' ? 'default' : 'outline'}`}
-                      onClick={() => setCustomUnit('inches')}
-                    >
-                      Inches
-                    </button>
-                    <button 
-                      className={`btn sm ${customUnit === 'cm' ? 'default' : 'outline'}`}
-                      onClick={() => setCustomUnit('cm')}
-                    >
-                      Centimeters
-                    </button>
-                  </div>
-                </div>
-              )}
-              {analysis && (
-                <div className="analysis-results">
-                  <h4>Analysis Results:</h4>
-                  <p>Print Size: {analysis.width}" x {analysis.height}" ({analysis.widthCm} cm x {analysis.heightCm} cm)</p>
-                  <p>Effective DPI: {analysis.dpi}</p>
-                  <div className="quality-bar">
-                    <label>Print Quality:</label>
-                    <div className="quality-bar-container">
-                      <div 
-                        className="quality-bar-fill" 
-                        style={{width: `${analysis.qualityScore}%`}}
-                      ></div>
-                    </div>
-                    <span>{analysis.quality} ({analysis.qualityScore}%)</span>
-                  </div>
-                </div>
-              )}
-            </div>
-          </>
-        )}
+          <div className="explenation-container">
+            <h2>Explanation</h2>
+            <p>This is a poster print checker that will help you determine if your image is suitable for poster printing.</p>
+            <p>Here's how the app works and the steps to use it:</p>
+            <ol>
+              <li><strong>Upload an Image:</strong> Drag and drop an image into the designated area or click to select a file from your device.</li>
+              <li><strong>Image Analysis:</strong> The app will analyze the uploaded image to determine its dimensions, aspect ratio, and megapixels.</li>
+              <li><strong>Select DPI:</strong> Choose a DPI (Dots Per Inch) setting. Higher DPI generally means better print quality. You can select from standard (150 DPI), high (300 DPI), or ultra-high (600 DPI).</li>
+              <li><strong>Select Poster Size:</strong> Choose a predefined poster size or select 'Custom' to enter your own dimensions. You can switch between inches and centimeters for custom sizes.</li>
+              <li><strong>View Results:</strong> The app will calculate and display the effective DPI, print size, and print quality based on your selections. It will also indicate whether the image is suitable for poster printing.</li>
+              <li><strong>Reset:</strong> Click the reset button to clear the current analysis and start over with a new image.</li>
+            </ol>
+            <p>By following these steps, you can easily determine if your image is suitable for printing as a poster and ensure the best possible print quality.</p>
+          </div>
+        </div>
       </div>
     </>
   );
