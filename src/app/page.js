@@ -1,6 +1,6 @@
 "use client"; // Add this line at the top
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import Head from 'next/head';
 import { Helmet } from 'react-helmet';
 import { AlertCircle, Upload, RefreshCw, Info } from 'lucide-react';
@@ -31,6 +31,7 @@ const PosterPrintChecker = () => {
         megapixels,
         suitable: parseFloat(megapixels) >= 6
       });
+      setIsDragging(false); // Reset dragging state after image is loaded
     }
     img.src = URL.createObjectURL(file);
     setPreviewUrl(img.src);
@@ -91,35 +92,12 @@ const PosterPrintChecker = () => {
   const handleFile = useCallback((file) => {
     if (file && file.type.startsWith('image/')) {
       analyzeImage(file);
+      setPreviewUrl(URL.createObjectURL(file)); // Update previewUrl with the uploaded image
     } else {
       alert('Please upload a valid image file.');
+      setIsDragging(false); // Reset dragging state if invalid file
     }
   }, [analyzeImage]);
-
-  const handleDragEnter = useCallback((e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true);
-  }, []);
-
-  const handleDragLeave = useCallback((e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-  }, []);
-
-  const handleDragOver = useCallback((e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  }, []);
-
-  const handleDrop = useCallback((e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-    const file = e.dataTransfer.files[0];
-    if (file) handleFile(file);
-  }, [handleFile]);
 
   const handleReset = useCallback(() => {
     setResult(null);
@@ -136,8 +114,50 @@ const PosterPrintChecker = () => {
     }
   }, []);
 
+  const handleDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      handleFile(file);
+    }
+    setIsDragging(false); // Reset dragging state after drop
+  };
+
+  // Add event listeners to the window
+  useEffect(() => {
+    window.addEventListener('dragenter', handleDragEnter);
+    window.addEventListener('dragleave', handleDragLeave);
+    window.addEventListener('dragover', handleDragOver);
+    window.addEventListener('drop', handleDrop);
+
+    return () => {
+      window.removeEventListener('dragenter', handleDragEnter);
+      window.removeEventListener('dragleave', handleDragLeave);
+      window.removeEventListener('dragover', handleDragOver);
+      window.removeEventListener('drop', handleDrop);
+    };
+  }, []);
+
   return (
-    <>
+    <div className={isDragging ? 'dragging' : ''}>
       <Head>
         <title>Poster Print Checker</title>
         <meta name="description" content="Check if your image is suitable for poster printing." />
@@ -174,48 +194,58 @@ const PosterPrintChecker = () => {
       <div className="container">
         <div className="main-container">
           <div className="calc-container">
-            <button 
-              type="button" 
-              className="btn reset-btn"
-              onClick={handleReset}
-            >
-              Reset
-            </button>
             <p>Upload an image to check if it's suitable for poster printing.</p>
-            <div 
-              className={`dropzone ${isDragging ? 'dragging' : ''}`}
-              onDragEnter={handleDragEnter}
-              onDragLeave={handleDragLeave}
-              onDragOver={handleDragOver}
-              onDrop={handleDrop}
-            >
-              <input 
-                type="file" 
-                accept="image/*"
-                onChange={(e) => e.target.files && e.target.files[0] && handleFile(e.target.files[0])}
-                className="file-input-hidden"
-                id="fileInput"
-              />
-              <label htmlFor="fileInput" className="dropzone-label">
-                <Upload className="icon" />
-                <p>Drag and drop an image here, or click to select a file</p>
-                <button 
-                  type="button" 
-                  className="btn file-btn"
-                  onClick={() => document.getElementById('fileInput').click()}
-                >
-                  Choose File
-                </button>
-              </label>
+            <div className="button-group">
+              <button 
+                type="button" 
+                className="btn common-btn"
+                onClick={handleReset}
+              >
+                <div>🔄</div>
+                <div>Reset</div>
+              </button>
+              <button 
+                type="button"
+                className="btn common-btn"
+                onClick={() => document.getElementById('fileInput').click()}
+              >
+                <div>📤</div>
+                <div>Upload from Computer</div>
+              </button>
+              <button 
+                type="button" 
+                className="btn common-btn"
+                onClick={() => {
+                  const url = prompt("Enter image URL:");
+                  if (url) handleFile({ type: 'image/jpeg', name: 'image.jpg', url }); // Adjust as needed
+                }}
+              >
+                <div>🌐</div>
+                <div>URL from Web</div>
+              </button>
             </div>
-
-            {previewUrl && (
-              <div className="preview">
-                <h2>Image Preview</h2>
-                <img src={previewUrl} alt="Preview" className="preview-image" />
-              </div>
-            )}
-
+            <input 
+              type="file" 
+              accept="image/*"
+              onChange={(e) => e.target.files && e.target.files[0] && handleFile(e.target.files[0])}
+              className="file-input-hidden"
+              id="fileInput"
+            />
+            <h2>Image Preview</h2>
+            <div className="preview" style={{ width: '300px', height: '200px', overflow: 'hidden', border: '1px solid #ccc', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {previewUrl ? (
+                <img 
+                  src={previewUrl} 
+                  alt="Preview" 
+                  className="preview-image" 
+                  style={{ width: '100%', height: '100%', objectFit: 'contain' }} // Use 'cover' to fill the area
+                  onLoad={() => console.log('Image loaded successfully')} // Log when the image is loaded
+                  onError={() => console.error('Error loading image')} // Log if there's an error loading the image
+                />
+              ) : (
+                <p style={{ color: '#aaa' }}>Upload an image to see the preview.</p> // Placeholder text
+              )}
+            </div>
             {result && (
               <>
                 <div className={`result ${result.suitable ? 'suitable' : 'not-suitable'}`}>
@@ -228,7 +258,6 @@ const PosterPrintChecker = () => {
                     </p>
                   </div>
                 </div>
-
                 <div className="analysis">
                   <h2>Image Analysis</h2>
                   <p>Dimensions: {result.width}x{result.height} pixels</p>
@@ -374,7 +403,7 @@ const PosterPrintChecker = () => {
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

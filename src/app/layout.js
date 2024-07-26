@@ -1,7 +1,11 @@
-import { Inter } from "next/font/google";
+import { Poppins } from "next/font/google";
 import Script from 'next/script';
 
-const inter = Inter({ subsets: ["latin"] });
+// Specify the weights you want to use
+const poppins = Poppins({ 
+  subsets: ["latin"], 
+  weight: ["400", "600"] // Use 'weight' instead of 'weights'
+});
 
 export const metadata = {
   title: "Create Next App",
@@ -25,7 +29,7 @@ export default function RootLayout({ children }) {
           `}
         </Script>
       </head>
-      <body className={inter.className}>{children}</body>
+      <body className={poppins.className}>{children}</body>
     </html>
   );
 }

@@ -8,7 +8,7 @@
 body {
   margin: 0;
   padding: 0;
-  font-family: 'Arial', sans-serif;
+  font-family: 'Poppins', sans-serif; /* Updated font */
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
 }
 
@@ -68,6 +68,7 @@ html {
 }
 
 .btn {
+  font-family: 'Poppins', sans-serif; /* Apply Poppins font to buttons */
   padding: 0.8rem 1.6rem; /* 8px 16px */
   border: 0.1rem solid black; /* 1px */
   border-radius: 0.4rem; /* 4px */
@@ -129,8 +130,9 @@ html {
 }
 
 .dropzone.dragging {
-  background-color: #e0e0e0;
-  border-color: #333;
+  background-color: rgba(102, 178, 255, 0.5); /* Light blue background */
+  border: 2px dashed #0056b3; /* Dashed border */
+  transition: background-color 0.3s ease, border 0.3s ease; /* Smooth transition */
 }
 
 .dropzone-label {
@@ -449,4 +451,40 @@ html {
 .reset-btn:hover {
   background-color: #764ba2;
   color: white;
+}
+
+.button-group {
+    display: flex;
+    gap: 10px; /* Adjust the gap as needed */
+}
+
+.common-btn {
+    flex: 1; /* Makes all buttons the same size */
+    min-width: 120px; /* Set a minimum width for the buttons */
+    padding: 0.8rem 1.6rem; /* Consistent padding */
+    border: 0.1rem solid black; /* 1px */
+    border-radius: 0.4rem; /* 4px */
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.common-btn.outline {
+    background-color: white;
+    color: black;
+}
+
+.common-btn.default {
+    background-color: black;
+    color: white;
+}
+
+.common-btn:hover {
+    background-color: #764ba2; /* Change to your desired hover color */
+    color: white;
+}
+
+.dragging {
+  background-color: rgba(102, 178, 255, 0.5); /* Light blue background */
+  border: 2px dashed #0056b3; /* Dashed border */
+  transition: background-color 0.3s ease, border 0.3s ease; /* Smooth transition */
 }
