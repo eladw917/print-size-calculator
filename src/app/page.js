@@ -15,6 +15,8 @@ const PosterPrintChecker = () => {
   const [customWidth, setCustomWidth] = useState('');
   const [customHeight, setCustomHeight] = useState('');
   const [customUnit, setCustomUnit] = useState('inches');
+  const [urlModalOpen, setUrlModalOpen] = useState(false);
+  const [urlInput, setUrlInput] = useState('');
 
   const analyzeImage = useCallback((file) => {
     const img = new Image();
@@ -141,6 +143,14 @@ const PosterPrintChecker = () => {
     setIsDragging(false); // Reset dragging state after drop
   };
 
+  const handleUrlSubmit = () => {
+    if (urlInput) {
+      handleFile({ type: 'image/jpeg', name: 'image.jpg', url: urlInput }); // Adjust as needed
+      setUrlModalOpen(false); // Close the modal after submission
+      setUrlInput(''); // Clear the input
+    }
+  };
+
   // Add event listeners to the window
   useEffect(() => {
     window.addEventListener('dragenter', handleDragEnter);
@@ -215,10 +225,7 @@ const PosterPrintChecker = () => {
               <button 
                 type="button" 
                 className="btn common-btn"
-                onClick={() => {
-                  const url = prompt("Enter image URL:");
-                  if (url) handleFile({ type: 'image/jpeg', name: 'image.jpg', url }); // Adjust as needed
-                }}
+                onClick={() => setUrlModalOpen(true)} // Open modal
               >
                 <div>🌐</div>
                 <div>URL from Web</div>
@@ -403,6 +410,24 @@ const PosterPrintChecker = () => {
           </div>
         </div>
       </div>
+
+      {/* Modal for URL input */}
+      {urlModalOpen && (
+        <div className="modal">
+          <div className="modal-content">
+            <h2>Enter Image URL</h2>
+            <input 
+              type="text" 
+              value={urlInput} 
+              onChange={(e) => setUrlInput(e.target.value)} 
+              placeholder="Enter image URL here"
+              className="url-input"
+            />
+            <button onClick={handleUrlSubmit} className="btn common-btn">Submit</button>
+            <button onClick={() => setUrlModalOpen(false)} className="btn common-btn">Cancel</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

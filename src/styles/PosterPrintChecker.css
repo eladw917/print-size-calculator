@@ -488,3 +488,33 @@ html {
   border: 2px dashed #0056b3; /* Dashed border */
   transition: background-color 0.3s ease, border 0.3s ease; /* Smooth transition */
 }
+
+/* Modal styles */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000; /* Ensure it appears above other content */
+}
+
+.modal-content {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 0.4rem;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+.url-input {
+  width: 100%;
+  padding: 0.8rem;
+  margin: 1rem 0;
+  border: 1px solid #ccc;
+  border-radius: 0.4rem;
+}
