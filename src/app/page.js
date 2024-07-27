@@ -8,14 +8,34 @@ import '../styles/PosterPrintChecker.css';
 const PosterPrintChecker = () => {
   const [image, setImage] = useState(null);
   const [analysis, setAnalysis] = useState(null);
-  const [customSize, setCustomSize] = useState({ width: '', height: '' });
-  const [customResult, setCustomResult] = useState(null);
-  const [error, setError] = useState({ width: '', height: '' });
+  const [selectedSize, setSelectedSize] = useState(null);
+  const [selectedGrade, setSelectedGrade] = useState(null);
+  const [selectedExplanation, setSelectedExplanation] = useState(null);
+  const [backgroundColor, setBackgroundColor] = useState(''); // Default color
 
   const COMMON_SIZES = [
-    { name: '18x24 inches', width: 18, height: 24 },
-    { name: '24x36 inches', width: 24, height: 36 },
-    { name: '36x48 inches', width: 36, height: 48 },
+    { name: '4x6"', width: 4, height: 6, description: 'Common photo size for albums' },
+    { name: '5x7"', width: 5, height: 7, description: 'Common photo size for frames' },
+    { name: 'A6', width: 4.1, height: 5.8, description: 'Postcard size' },
+    { name: 'A5', width: 5.8, height: 8.3, description: 'Half of A4, used for notebooks' },
+    { name: '8x10"', width: 8, height: 10, description: 'Standard photo size for portraits' },
+    { name: 'A4', width: 8.3, height: 11.7, description: 'Standard letter size paper' },
+    { name: 'A3', width: 11.7, height: 16.5, description: 'Used for posters and drawings' },
+    { name: '11x14"', width: 11, height: 14, description: 'Common print size for photos' },
+    { name: '12x18"', width: 12, height: 18, description: 'Common poster size' },
+    { name: 'A2', width: 16.5, height: 23.4, description: 'Used for large posters' },
+    { name: '16x20"', width: 16, height: 20, description: 'Common size for wall art' },
+    { name: '16x24"', width: 16, height: 24, description: 'Common poster size' },
+    { name: '18x24"', width: 18, height: 24, description: 'Used for movie posters' },
+    { name: '20x30"', width: 20, height: 30, description: 'Large poster size' },
+    { name: 'A1', width: 23.4, height: 33.1, description: 'Used for large prints and posters' },
+    { name: '24x30"', width: 24, height: 30, description: 'Common print size for art' },
+    { name: '24x36"', width: 24, height: 36, description: 'Standard movie poster size' },
+    { name: 'A0', width: 33.1, height: 46.8, description: 'Used for large format prints' },
+    { name: '30x40"', width: 30, height: 40, description: 'Large wall photo size' },
+    { name: '30x60"', width: 30, height: 60, description: 'Common banner size' },
+    { name: '36x48"', width: 36, height: 48, description: 'Large poster size' },
+    { name: '48x72"', width: 48, height: 72, description: 'Extra large poster size' },
   ];
 
   const handleImageUpload = (event) => {
@@ -62,85 +82,14 @@ const PosterPrintChecker = () => {
     setAnalysis(results);
   };
 
-  const getGradeColor = (grade) => {
-    switch (grade) {
-      case 'Excellent': return 'rgba(76, 175, 80, 0.6)';
-      case 'Good': return 'rgba(139, 195, 74, 0.6)';
-      case 'Fair': return 'rgba(255, 193, 7, 0.6)';
-      case 'Poor': return 'rgba(244, 67, 54, 0.6)';
-      default: return 'rgba(158, 158, 158, 0.6)';
-    }
-  };
-
-  const handleCustomSizeChange = (e) => {
-    const { name, value } = e.target;
-    setCustomSize(prev => ({ ...prev, [name]: value }));
-  };
-
-  const analyzeCustomSize = () => {
-    if (!image || !customSize.width || !customSize.height) {
-      setError({ width: 'Required', height: 'Required' });
-      return;
-    }
-
-    const dpi = Math.min(image.width / customSize.width, image.height / customSize.height);
-    let grade, explanation;
-
-    if (dpi >= 300) {
-      grade = 'Excellent';
-      explanation = 'The image resolution is perfect for this size.';
-    } else if (dpi >= 200) {
-      grade = 'Good';
-      explanation = 'The image should print well at this size.';
-    } else if (dpi >= 150) {
-      grade = 'Fair';
-      explanation = 'The image may appear slightly pixelated at this size.';
+  const getGradeColor = (dpi) => {
+    if (dpi > 300) {
+      return '#02EC88'; // Softer Green
+    } else if (dpi >= 150 && dpi <= 300) {
+      return '#E6Ca51'; // Softer Yellow
     } else {
-      grade = 'Poor';
-      explanation = 'The image resolution is too low for this size. It will appear pixelated.';
+      return '#E53529'; // Softer Red
     }
-
-    setCustomResult({ size: `${customSize.width}x${customSize.height} inches`, grade, explanation, dpi: Math.round(dpi) });
-    document.querySelector('.custom-size').classList.add('analyzed');
-  };
-
-  const resetCustomSize = () => {
-    setCustomSize({ width: '', height: '' });
-    setCustomResult(null);
-    document.querySelector('.custom-size').classList.remove('analyzed');
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    const numValue = Number(value);
-    
-    if (numValue <= 0) {
-      setError(prev => ({ ...prev, [name]: 'Value must be greater than 0' }));
-      setCustomSize(prev => ({ ...prev, [name]: '' }));
-    } else {
-      setError(prev => ({ ...prev, [name]: '' }));
-      setCustomSize(prev => ({ ...prev, [name]: value }));
-    }
-  };
-
-  const handleIncrement = (name) => {
-    setCustomSize(prev => {
-      const newValue = Number(prev[name] || 0) + 1;
-      setError(prevError => ({ ...prevError, [name]: '' }));
-      return { ...prev, [name]: String(newValue) };
-    });
-  };
-
-  const handleDecrement = (name) => {
-    setCustomSize(prev => {
-      const newValue = Math.max(1, Number(prev[name] || 0) - 1);
-      if (newValue === 1) {
-        setError(prevError => ({ ...prevError, [name]: 'Minimum value is 1' }));
-      } else {
-        setError(prevError => ({ ...prevError, [name]: '' }));
-      }
-      return { ...prev, [name]: String(newValue) };
-    });
   };
 
   return (
@@ -169,137 +118,82 @@ const PosterPrintChecker = () => {
             <h2>Check Your Image for Poster Printing</h2>
             <input type="file" accept="image/*" onChange={handleImageUpload} />
             {image && (
-              <div>
-                <h3>Uploaded Image</h3>
-                <p>Dimensions: {image.width} x {image.height} pixels</p>
-              </div>
-            )}
-            {analysis && (
-              <div className="results-grid">
-                {analysis.map((result, index) => (
-                  <div 
-                    key={index} 
-                    className="poster-result"
-                    style={{backgroundImage: `url(${image.src})`, backgroundSize: 'cover', backgroundPosition: 'center'}}
-                  >
-                    <div className="poster-overlay" style={{backgroundColor: getGradeColor(result.grade)}}>
-                      <div className="poster-front">
-                        <h4>{result.size}</h4>
-                        <p>{result.grade}</p>
-                      </div>
-                      <div className="poster-back">
-                        <h4>{result.size}</h4>
-                        <p>Grade: {result.grade}</p>
-                        <p>DPI: {result.dpi}</p>
-                        <p>{result.explanation}</p>
+              <div className="results-container" style={{ display: 'flex', alignItems: 'stretch', flexDirection: 'column' }}>
+                <h3 style={{ textAlign: 'center' }}>Uploaded Image</h3>
+                <p style={{ textAlign: 'center' }}>Dimensions: {image.width} x {image.height} pixels</p>
+                <div style={{ display: 'flex', width: '100%' }}>
+                  <div className="image-display" style={{ flex: '1', marginRight: '20px' }}>
+                    <div 
+                      className="poster-result"
+                      style={{backgroundImage: `url(${image.src})`, backgroundSize: 'cover', backgroundPosition: 'center', height: '200px', width: '200px'}}
+                    >
+                      <div className="poster-overlay" style={{ backgroundColor: backgroundColor }}>
+                        <div className="poster-front" style={{ height: '100%', width: '100%', position: 'relative' }}>
+                          <img 
+                            src={image.src} 
+                            alt="Uploaded" 
+                            style={{ 
+                              width: '100%', 
+                              height: '100%', 
+                              objectFit: 'cover', 
+                              borderRadius: '4px'
+                            }} 
+                          />
+                          {selectedSize ? (
+                            <>
+                              <h4 style={{ position: 'absolute', bottom: '10px', left: '10px', color: '#fff' }}>{selectedSize}</h4>
+                              <p style={{ position: 'absolute', bottom: '30px', left: '10px', color: '#fff' }}>{selectedGrade}</p>
+                            </>
+                          ) : (
+                            <p style={{ position: 'absolute', bottom: '10px', left: '10px', color: '#fff' }}>Select a size</p>
+                          )}
+                        </div>
+                        <div className="poster-back">
+                          <h4>{selectedSize || analysis[0]?.size}</h4>
+                          <p>Grade: {selectedGrade || analysis[0]?.grade}</p>
+                          <p>
+                            DPI: {selectedSize ? Math.min(image.width / COMMON_SIZES.find(size => size.name === selectedSize).width, image.height / COMMON_SIZES.find(size => size.name === selectedSize).height).toFixed(2) : analysis[0]?.dpi}
+                          </p>
+                          <p>{selectedExplanation || analysis[0]?.explanation}</p>
+                        </div>
                       </div>
                     </div>
                   </div>
-                ))}
-                <div className="poster-result custom-size">
-                  <div 
-                    className={`poster-overlay ${customResult ? 'analyzed' : ''}`} 
-                    style={{
-                      backgroundImage: customResult ? `url(${image.src})` : 'none',
-                      backgroundSize: 'cover',
-                      backgroundPosition: 'center'
-                    }}
-                  >
-                    <div 
-                      className="grade-background"
-                      style={{
-                        backgroundColor: customResult ? getGradeColor(customResult.grade) : 'transparent'
-                      }}
-                    ></div>
-                    <div className="poster-front">
-                      {!customResult ? (
-                        <>
-                          <h4>Custom Size</h4>
-                          <div className="custom-size-inputs">
-                            <div className="input-group">
-                              <input 
-                                type="number" 
-                                name="width" 
-                                value={customSize.width} 
-                                onChange={handleInputChange} 
-                                placeholder="Width"
-                                min="1"
-                              />
-                              <span className="input-label">in</span>
-                              <div className="input-arrows">
-                                <button className="arrow-up" onClick={() => handleIncrement('width')}>
-                                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
-                                    <path d="M12 8l-6 6 1.41 1.41L12 10.83l4.59 4.58L18 14z"/>
-                                  </svg>
-                                </button>
-                                <button className="arrow-down" onClick={() => handleDecrement('width')}>
-                                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
-                                    <path d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"/>
-                                  </svg>
-                                </button>
-                              </div>
-                              {error.width && <span className="error-message">{error.width}</span>}
-                            </div>
-                            <div className="input-group">
-                              <input 
-                                type="number" 
-                                name="height" 
-                                value={customSize.height} 
-                                onChange={handleInputChange} 
-                                placeholder="Height"
-                                min="1"
-                              />
-                              <span className="input-label">in</span>
-                              <div className="input-arrows">
-                                <button className="arrow-up" onClick={() => handleIncrement('height')}>
-                                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
-                                    <path d="M12 8l-6 6 1.41 1.41L12 10.83l4.59 4.58L18 14z"/>
-                                  </svg>
-                                </button>
-                                <button className="arrow-down" onClick={() => handleDecrement('height')}>
-                                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
-                                    <path d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"/>
-                                  </svg>
-                                </button>
-                              </div>
-                              {error.height && <span className="error-message">{error.height}</span>}
-                            </div>
-                            <button onClick={analyzeCustomSize} className="btn-analyze">Analyze</button>
-                          </div>
-                        </>
-                      ) : (
-                        <div className="custom-size-result">
-                          <h4>{customResult.size}</h4>
-                          <p className="grade">{customResult.grade}</p>
+                  <div className="results-info" style={{ flex: '1', height: '200px', border: '1px solid #ccc', overflow: 'hidden', borderRadius: '8px', padding: '10px' }}>
+                    <h3 style={{ textAlign: 'center', marginBottom: '10px' }}>Choose Your Preferred Print Size</h3>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', overflowY: 'auto', maxHeight: '150px', padding: '5px' }}>
+                      {analysis && analysis.map((result, index) => (
+                        <div 
+                          key={index} 
+                          style={{ width: '40px', height: '30px', backgroundColor: getGradeColor(result.dpi), display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '4px', cursor: 'pointer' }} 
+                          title={COMMON_SIZES.find(size => size.name === result.size)?.description} // Tooltip with description
+                          onClick={() => {
+                            setSelectedSize(result.size);
+                            setSelectedGrade(result.grade);
+                            setSelectedExplanation(result.explanation);
+                            setBackgroundColor(getGradeColor(result.dpi)); // Set background color based on DPI
+                          }}
+                        >
+                          <span style={{ color: '#fff', fontSize: '10px' }}>{result.size}</span>
                         </div>
-                      )}
+                      ))}
                     </div>
-                    {customResult && (
-                      <div className="poster-back">
-                        <h4>{customResult.size}</h4>
-                        <p>Grade: {customResult.grade}</p>
-                        <p>DPI: {customResult.dpi}</p>
-                        <p>{customResult.explanation}</p>
-                      </div>
-                    )}
-                    {customResult && (
-                      <button onClick={resetCustomSize} className="btn-reset">New Size</button>
-                    )}
                   </div>
                 </div>
               </div>
             )}
           </div>
           <div className="explenation-container">
-            <h2>How It Works</h2>
-            <p>Upload an image to check if it's suitable for printing at common poster sizes. We analyze the image resolution and provide a grade for each size, along with an explanation.</p>
-            <p>The grades are based on the resulting DPI (Dots Per Inch) when the image is printed at each size:</p>
+            <h2>Transform Online Images into High-Quality Prints</h2>
+            <p>Use Print Size Calculator to make any image online into a high-quality poster or album photo. This powerful tool analyzes your digital images and determines the optimal print dimensions, ensuring stunning results whether you're creating wall art or preserving memories in a photo album.</p>
+            <h3>Key features:</h3>
             <ul>
-              <li>Excellent: 300 DPI or higher</li>
-              <li>Good: 200-299 DPI</li>
-              <li>Fair: 150-199 DPI</li>
-              <li>Poor: Below 150 DPI</li>
+              <li>Works with any online image</li>
+              <li>Calculates ideal sizes for posters and photos</li>
+              <li>Ensures high-quality prints every time</li>
+              <li>Easy to use: just upload and get results</li>
             </ul>
+            <p>Don't let great online images stay trapped on your screen. With Print Size Calculator, transform them into beautiful, tangible prints that you can enjoy in the real world. Whether you're a professional photographer, a social media enthusiast, or just looking to decorate your space, this tool helps you achieve professional-grade prints from your digital files.</p>
           </div>
         </div>
       </div>

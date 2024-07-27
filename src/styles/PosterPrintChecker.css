@@ -162,7 +162,7 @@ html {
 
 .poster-result {
   position: relative;
-  height: 250px;
+  height: 200px; /* Decrease height from 250px to 200px */
   border-radius: 10px;
   overflow: hidden;
   cursor: pointer;
@@ -541,4 +541,22 @@ html {
   font-size: 1.8rem;
   font-weight: bold;
   margin-bottom: 0.5rem;
+}
+
+.results-container {
+  display: flex;
+  align-items: stretch;
+}
+
+.image-display {
+  flex: 1;
+  margin-right: 20px;
+}
+
+.results-info {
+  flex: 1;
+  border: 1px solid #ccc; /* Optional: Add border for visual separation */
+  overflow: hidden; /* Prevent overflow of content */
+  box-sizing: border-box; /* Include padding in height calculation */
+  height: 200px; /* Set height to match the poster result */
 }
