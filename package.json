@@ -7,14 +7,12 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
-  
-
   },
   "dependencies": {
-    "lucide-react": "^0.411.0",
     "next": "14.2.5",
     "react": "^18",
     "react-dom": "^18",
+    "react-ga4": "^2.1.0",
     "react-helmet": "^6.1.0"
   }
 }

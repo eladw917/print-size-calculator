@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { Helmet } from 'react-helmet';
 import '../styles/PosterPrintChecker.css';
+import ReactGA from 'react-ga4';
 
 const PosterPrintChecker = () => {
   const [image, setImage] = useState(null);
@@ -38,6 +39,10 @@ const PosterPrintChecker = () => {
     { name: '48x72"', width: 48, height: 72, description: 'Extra large poster size' },
   ];
 
+  useEffect(() => {
+    ReactGA.initialize('G-P35QPLTGWT'); // Replace with your actual GA4 Measurement ID
+  }, []);
+
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
     const reader = new FileReader();
@@ -51,6 +56,13 @@ const PosterPrintChecker = () => {
           src: e.target.result
         });
         analyzeImage(img.width, img.height);
+
+        // Send event to Google Analytics
+        ReactGA.event({
+          category: 'User Interaction',
+          action: 'Image Upload',
+          label: file.name,
+        });
       };
       img.src = e.target.result;
     };
