@@ -31,14 +31,6 @@ const ModernHeader = ({ onImageUpload }) => {
     reader.readAsDataURL(file);
   }, [onImageUpload]);
 
-  const handleDrop = useCallback((e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFileUpload(e.dataTransfer.files[0]);
-    }
-  }, [handleFileUpload]);
-
   const handleFileInputChange = useCallback((e) => {
     if (e.target.files && e.target.files[0]) {
       handleFileUpload(e.target.files[0]);
@@ -76,22 +68,6 @@ const ModernHeader = ({ onImageUpload }) => {
     setImageUrl('');
   }, [imageUrl, onImageUpload]);
 
-  const handleClickOutside = useCallback((event) => {
-    if (urlInputRef.current && 
-        !urlInputRef.current.contains(event.target) &&
-        !urlButtonRef.current.contains(event.target)) {
-      setShowUrlInput(false);
-      setImageUrl('');
-    }
-  }, []);
-
-  useEffect(() => {
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [handleClickOutside]);
-
   return (
     <header className="modern-header">
       <div className="modern-header-container">
@@ -103,8 +79,6 @@ const ModernHeader = ({ onImageUpload }) => {
         <div className="button-container">
           <div 
             className="upload-button"
-            onDrop={handleDrop}
-            onDragOver={handleDrop}
             onClick={() => fileInputRef.current.click()}
           >
             <Upload size={20} className='icon'/>
@@ -119,7 +93,6 @@ const ModernHeader = ({ onImageUpload }) => {
           
           <div className="url-input-container">
             <button 
-              ref={urlButtonRef}
               onClick={() => setShowUrlInput(!showUrlInput)}
               className="url-button"
             >
@@ -129,7 +102,7 @@ const ModernHeader = ({ onImageUpload }) => {
             </button>
             
             {showUrlInput && (
-              <form ref={urlInputRef} onSubmit={handleUrlSubmit} className="url-form">
+              <form onSubmit={handleUrlSubmit} className="url-form">
                 <input
                   type="url"
                   placeholder="Paste image URL here"
@@ -356,6 +329,42 @@ const PosterPrintChecker = () => {
 
     setAnalysis(results);
   };
+
+  const handleDrop = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const file = e.dataTransfer.files[0];
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          handleImageUpload({
+            file: file,
+            width: img.width,
+            height: img.height,
+            src: e.target.result
+          });
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  }, [handleImageUpload]);
+
+  const handleDragOver = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  useEffect(() => {
+    document.addEventListener('drop', handleDrop);
+    document.addEventListener('dragover', handleDragOver);
+    return () => {
+      document.removeEventListener('drop', handleDrop);
+      document.removeEventListener('dragover', handleDragOver);
+    };
+  }, [handleDrop, handleDragOver]);
 
   return (
     <>
