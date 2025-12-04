@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Print Size Calculator</title>
   <meta name="description" content="Calculate the print size of your image">
-  <link rel="icon" href="/favicon.ico">
-  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" href="assets/favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
+  <link rel="manifest" href="assets/site.webmanifest">
   <link rel="stylesheet" href="styles.css">
 
   <!-- Google Analytics -->
@@ -97,7 +97,8 @@
           <div class="image-preview">
             <h3 id="image-title">Uploaded Image</h3>
             <div class="image-display">
-              <img id="uploaded-image" alt="Uploaded image">
+              <img id="uploaded-image" alt="Uploaded image" style="display: none;">
+              <canvas id="quality-canvas" width="368" height="218"></canvas>
             </div>
             <div class="image-analysis" id="image-analysis">
               <!-- Analysis text will be added here -->

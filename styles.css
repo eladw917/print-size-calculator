@@ -613,6 +613,17 @@ html, body {
   object-position: center;
 }
 
+#quality-canvas {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  width: calc(100% - 32px);
+  height: calc(100% - 32px);
+  border-radius: 0.4rem;
+  display: block; /* Always visible as primary display */
+  pointer-events: none; /* Don't interfere with interactions */
+}
+
 .image-analysis {
   margin-top: 10px;
   text-align: center;
@@ -637,6 +648,7 @@ html, body {
   max-width: 300px;
   margin: 0 auto;
 }
+
 
 .image-overlay {
   position: absolute;

@@ -25,6 +25,7 @@ const elements = {
   imageTitle: document.getElementById('image-title'),
   uploadedImage: document.getElementById('uploaded-image'),
   imageAnalysis: document.getElementById('image-analysis'),
+  qualityCanvas: document.getElementById('quality-canvas'),
   sizeGrid: document.getElementById('size-grid'),
   sizeDetails: document.getElementById('size-details'),
   selectedSize: document.getElementById('selected-size'),
@@ -191,6 +192,11 @@ function handleImageUpload(imageData) {
   elements.uploadedImage.src = imageData.src;
   elements.imageTitle.textContent = `Uploaded Image (${imageData.width} x ${imageData.height} pixels)`;
 
+  // Show DPI preview when image loads
+  elements.uploadedImage.onload = () => {
+    updateDpiPreview(300); // Start with perfect quality
+  };
+
   // Update image analysis
   updateImageAnalysis();
 
@@ -308,6 +314,9 @@ function updateImageAnalysis() {
           </div>
         </div>
       `;
+
+      // Update DPI quality preview
+      updateDpiPreview(selectedResult.dpi);
     }
   } else {
     // Show maximum print size at 300 DPI
@@ -331,6 +340,108 @@ function updateImageAnalysis() {
         <strong>Max print size at 300 DPI:</strong> ${displayWidth} × ${displayHeight} ${unitText}
       </div>
     `;
+
+    // Show perfect quality preview when no size selected
+    updateDpiPreview(300);
+  }
+}
+
+// Update DPI quality preview on canvas
+function updateDpiPreview(dpi) {
+  const canvas = elements.qualityCanvas;
+  const ctx = canvas.getContext('2d');
+  const img = elements.uploadedImage;
+
+  // Clear canvas
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  if (!img.complete || img.naturalWidth === 0) {
+    // Image not loaded yet - show loading state
+    ctx.fillStyle = '#f3f4f6';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#6b7280';
+    ctx.font = '16px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('Upload an image to see DPI preview', canvas.width / 2, canvas.height / 2);
+    canvas.style.display = 'block';
+    return;
+  }
+
+  // Canvas is always visible as the primary display
+  canvas.style.display = 'block';
+
+  // Canvas maintains full container size
+  // We show the ENTIRE image scaled to fit within the canvas (contain mode)
+
+  // Calculate scaling to fit entire image within canvas
+  const canvasAspectRatio = canvas.width / canvas.height;
+  const imgAspectRatio = img.naturalWidth / img.naturalHeight;
+
+  let scale, destWidth, destHeight, destX, destY;
+
+  if (imgAspectRatio > canvasAspectRatio) {
+    // Image is wider than canvas - fit by width
+    scale = canvas.width / img.naturalWidth;
+    destWidth = canvas.width;
+    destHeight = img.naturalHeight * scale;
+    destX = 0;
+    destY = (canvas.height - destHeight) / 2; // Center vertically
+  } else {
+    // Image is taller than canvas - fit by height
+    scale = canvas.height / img.naturalHeight;
+    destHeight = canvas.height;
+    destWidth = img.naturalWidth * scale;
+    destX = (canvas.width - destWidth) / 2; // Center horizontally
+    destY = 0;
+  }
+
+  // Fill canvas with light background for letterboxing
+  ctx.fillStyle = '#f8f9fa';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // To simulate DPI quality, we render the image at a lower effective resolution
+  // Higher DPI = crisp image, lower DPI = pixelated/blocky image
+
+  // Draw the entire image scaled to fit within canvas
+  ctx.drawImage(
+    img,
+    0, 0, img.naturalWidth, img.naturalHeight,
+    destX, destY, destWidth, destHeight
+  );
+
+  // For low DPI, apply pixelation effect to the scaled image
+  if (dpi < 150) {
+    // Calculate pixelation scale based on DPI
+    const pixelationScale = Math.max(0.1, dpi / 150); // 150 DPI = no pixelation, lower = more pixelation
+
+    // Create a temporary canvas for pixelation effect
+    const tempCanvas = document.createElement('canvas');
+    const tempCtx = tempCanvas.getContext('2d');
+
+    // Set temp canvas to a lower resolution based on the displayed image size
+    const pixelatedWidth = Math.max(10, Math.floor(destWidth * pixelationScale));
+    const pixelatedHeight = Math.max(10, Math.floor(destHeight * pixelationScale));
+
+    tempCanvas.width = pixelatedWidth;
+    tempCanvas.height = pixelatedHeight;
+
+    // Draw the scaled image to temp canvas at low resolution
+    tempCtx.drawImage(
+      img,
+      0, 0, img.naturalWidth, img.naturalHeight,
+      0, 0, pixelatedWidth, pixelatedHeight
+    );
+
+    // Clear the area where the image is displayed
+    ctx.fillStyle = '#f8f9fa';
+    ctx.fillRect(destX, destY, destWidth, destHeight);
+
+    // Draw the pixelated version back to the image area (scales up, creating pixelation)
+    ctx.imageSmoothingEnabled = false; // Disable smoothing to show pixels clearly
+    ctx.drawImage(tempCanvas, destX, destY, destWidth, destHeight);
+  } else {
+    // High DPI - enable smoothing for crisp image
+    ctx.imageSmoothingEnabled = true;
   }
 }
 
@@ -640,6 +751,7 @@ function removeCustomSize(sizeName) {
     appState.selectedExplanation = null;
     appState.backgroundColor = '';
     updateImageAnalysis(); // Update to show max size again
+    updateDpiPreview(300); // Reset to perfect quality preview
   }
 
   // Re-analyze with updated custom sizes
