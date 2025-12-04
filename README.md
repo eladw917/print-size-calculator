@@ -1,37 +1,37 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Print Size Calculator
 
-#### Getting Started
+A web application that analyzes image resolution and determines optimal print sizes. Originally built with Next.js React, now converted to vanilla HTML, CSS, and JavaScript for easy deployment.
 
-First, run the development server:
+## Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- Upload images via file picker or drag & drop
+- Load images from URLs
+- Calculate DPI for various print sizes
+- Color-coded quality indicators (Excellent, Good, Fair, Poor)
+- Custom print size input
+- Google Analytics integration
+- Responsive design
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Getting Started
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+Simply open `index.html` in any modern web browser. No build process or dependencies required.
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+## Development
 
-## Learn More
+The application consists of three files:
+- `index.html` - Main HTML structure with inline SVG icons
+- `styles.css` - All styling (converted from the original React CSS)
+- `script.js` - Vanilla JavaScript functionality (converted from React components)
 
-To learn more about Next.js, take a look at the following resources:
+## Deployment
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+This application can be deployed directly to GitHub Pages, Netlify, or any static hosting service:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+1. Upload all files to your repository
+2. Enable GitHub Pages in repository settings
+3. The application will be available at your GitHub Pages URL
 
-## Deploy on Vercel
+## Original Next.js Version
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+The original React/Next.js code is preserved in the `src/` directory for reference.
 # poster-print-checker
