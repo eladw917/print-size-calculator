@@ -372,30 +372,22 @@ function updateDpiPreview(dpi) {
 
   // Canvas maintains full container size
   // We show the ENTIRE image scaled to fit within the canvas (contain mode)
+  // This ensures no parts of the image are cropped
 
   // Calculate scaling to fit entire image within canvas
-  const canvasAspectRatio = canvas.width / canvas.height;
-  const imgAspectRatio = img.naturalWidth / img.naturalHeight;
+  const scaleX = canvas.width / img.naturalWidth;
+  const scaleY = canvas.height / img.naturalHeight;
+  const scale = Math.min(scaleX, scaleY); // Use smaller scale to ensure entire image fits
 
-  let scale, destWidth, destHeight, destX, destY;
+  // Calculate destination dimensions (scaled image size)
+  const destWidth = img.naturalWidth * scale;
+  const destHeight = img.naturalHeight * scale;
 
-  if (imgAspectRatio > canvasAspectRatio) {
-    // Image is wider than canvas - fit by width
-    scale = canvas.width / img.naturalWidth;
-    destWidth = canvas.width;
-    destHeight = img.naturalHeight * scale;
-    destX = 0;
-    destY = (canvas.height - destHeight) / 2; // Center vertically
-  } else {
-    // Image is taller than canvas - fit by height
-    scale = canvas.height / img.naturalHeight;
-    destHeight = canvas.height;
-    destWidth = img.naturalWidth * scale;
-    destX = (canvas.width - destWidth) / 2; // Center horizontally
-    destY = 0;
-  }
+  // Center the image perfectly (equal margins on all sides)
+  const destX = (canvas.width - destWidth) / 2;
+  const destY = (canvas.height - destHeight) / 2;
 
-  // Fill canvas with light background for letterboxing
+  // Fill canvas with light background for letterboxing/pillarboxing
   ctx.fillStyle = '#f8f9fa';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
