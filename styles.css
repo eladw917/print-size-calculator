@@ -25,7 +25,7 @@ html, body {
 /* Layout */
 .container {
   max-width: 800px;
-  margin: 2rem auto 0;
+  margin: 0.5rem auto 0;
   padding: 1.6rem;
   display: flex;
   flex-direction: column;
@@ -54,9 +54,7 @@ html, body {
   margin: 0 auto;
 }
 
-.modern-header-container .icon{
-  margin-right: 0.8rem;
-}
+/* Icons removed - no icon styling needed */
 
 .modern-header-container .chev-icon{
   margin-left:0.4rem;
@@ -97,6 +95,9 @@ html, body {
   cursor: pointer;
   transition: background-color 0.3s;
   font-size: 1.6rem;
+  width: 180px;
+  justify-content: center;
+  box-sizing: border-box;
 }
 
 .upload-button:hover, .url-button:hover {
@@ -201,6 +202,25 @@ html, body {
   color: #333;
   margin-bottom: 2rem;
 }
+
+.calc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.calc-header h2 {
+  margin: 0;
+  flex: 1;
+}
+
+.calc-header .grade-legend {
+  margin: 0;
+  flex-shrink: 0;
+  margin-bottom: 0;
+}
+
 
 .calc-container:not(.hidden) {
   display: block; /* Show when visible class is added */
@@ -591,6 +611,31 @@ html, body {
   object-position: center;
 }
 
+.image-analysis {
+  margin-top: 10px;
+  text-align: center;
+  font-size: 1.2rem;
+  color: #374151;
+}
+
+.analysis-text {
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 12px 16px;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  line-height: 1.5;
+}
+
+.analysis-text strong {
+  color: #1f2937;
+}
+
+.analysis-summary {
+  text-align: left;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
 .image-overlay {
   position: absolute;
   bottom: 0;
@@ -637,6 +682,34 @@ html, body {
   opacity: 0.7;
 }
 
+.delete-custom-size {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 16px;
+  height: 16px;
+  background-color: rgba(239, 68, 68, 0.8);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: background-color 0.2s;
+}
+
+.delete-custom-size:hover {
+  background-color: rgba(239, 68, 68, 1);
+}
+
+.size-option {
+  position: relative;
+}
+
 .size-option:hover, .size-option.selected {
   transform: translateY(-2px);
   box-shadow: 0 0.4rem 0.6rem rgba(0, 0, 0, 0.1);
@@ -654,7 +727,7 @@ html, body {
 
 @media (min-width: 768px) {
   .container {
-    margin-top: 5rem;
+    margin-top: 1rem;
     padding: 2.4rem;
   }
 
@@ -709,8 +782,8 @@ html, body {
   }
 }
 
-.grade-legend {
-  margin-top: 20px;
+.calc-header .grade-legend {
+  margin: 0;
 }
 
 .legend-items {
@@ -721,15 +794,34 @@ html, body {
 
 .legend-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  font-size: 1.1rem;
+}
+
+.legend-text {
+  display: flex;
+  flex-direction: column;
+  margin-left: 6px;
+}
+
+.legend-text .quality {
+  font-weight: bold;
+  line-height: 1.2;
+}
+
+.legend-text .range {
+  font-size: 0.9rem;
+  color: #666;
+  line-height: 1.1;
 }
 
 .color-swatch {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   display: inline-block;
-  margin-right: 5px;
-  border-radius: 4px;
+  margin-top: 2px;
+  border-radius: 3px;
+  flex-shrink: 0;
 }
 
 .custom-size-container {
@@ -761,26 +853,39 @@ html, body {
 }
 
 .custom-size-form input {
-  padding: 8px 18px 8px 8px;
+  padding: 8px 12px;
   border: 1px solid #D1D5DB;
   border-radius: 4px;
-  width: 80px;
+  width: 90px;
 }
 
-.custom-size-form .input-wrapper {
+.width-field, .height-field {
+  width: 70px !important;
+}
+
+.ratio-field {
+  width: 120px !important;
+}
+
+.custom-size-form input:disabled {
+  background-color: #f9f9f9;
+  cursor: not-allowed;
+}
+
+.field-label {
+  position: absolute;
+  top: -8px;
+  left: 8px;
+  background: white;
+  padding: 0 4px;
+  font-size: 1rem;
+  color: #6B7280;
+  font-weight: 500;
+}
+
+.input-wrapper {
   position: relative;
   display: inline-block;
-}
-
-.custom-size-form .input-wrapper::after {
-  content: attr(data-unit);
-  position: absolute;
-  top: 50%;
-  right: 8px;
-  transform: translateY(-50%);
-  font-size: 1.2rem;
-  color: #6B7280;
-  pointer-events: none;
 }
 
 .unit-toggle {
@@ -820,4 +925,21 @@ html, body {
 
 .custom-size-form button[type="button"]:not(.unit-toggle):hover {
   background-color: #6B7280;
+}
+
+.add-custom-size {
+  font-size: 1.2rem !important;
+  font-weight: bold;
+  color: white;
+  background-color: #6B7280 !important;
+  padding: 0.8rem 0.4rem !important;
+}
+
+.add-custom-size:hover {
+  background-color: #4B5563 !important;
+  transform: translateY(-2px);
+}
+
+.custom-size-form-container {
+  margin-top: 20px;
 }

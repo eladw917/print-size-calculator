@@ -30,24 +30,14 @@
       </div>
 
       <div class="button-container">
-        <div class="upload-button">
-          <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-          </svg>
-          <span>Drag or Upload Image</span>
+        <button type="button" class="upload-button">
+          <span>Upload Image</span>
           <input type="file" class="hidden-input" accept="image/*">
-        </div>
+        </button>
 
-        <div class="url-input-container">
-          <button class="url-button">
-            <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
-            </svg>
-            <span>Enter URL</span>
-            <svg class="chev-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-            </svg>
-          </button>
+        <button class="url-button">
+          <span>Enter URL</span>
+        </button>
 
           <form class="url-form hidden">
             <input
@@ -59,7 +49,6 @@
               Submit
             </button>
           </form>
-        </div>
       </div>
     </div>
   </header>
@@ -67,16 +56,50 @@
   <div class="container">
     <div class="main-container">
       <div class="calc-container hidden">
-        <h2>Analysis Results</h2>
+        <div class="calc-header">
+          <h2>Analysis Results</h2>
+          <div class="grade-legend">
+            <div class="legend-items">
+              <div class="legend-item">
+                <span class="color-swatch" style="background-color: #10B981"></span>
+                <div class="legend-text">
+                  <span class="quality">Excellent</span>
+                  <span class="range">(300+ DPI)</span>
+                </div>
+              </div>
+              <div class="legend-item">
+                <span class="color-swatch" style="background-color: #F59E0B"></span>
+                <div class="legend-text">
+                  <span class="quality">Good</span>
+                  <span class="range">(200-300 DPI)</span>
+                </div>
+              </div>
+              <div class="legend-item">
+                <span class="color-swatch" style="background-color: #F97316"></span>
+                <div class="legend-text">
+                  <span class="quality">Fair</span>
+                  <span class="range">(150-199 DPI)</span>
+                </div>
+              </div>
+              <div class="legend-item">
+                <span class="color-swatch" style="background-color: #EF4444"></span>
+                <div class="legend-text">
+                  <span class="quality">Poor</span>
+                  <span class="range">(Below 150 DPI)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="results-container">
           <div class="image-preview">
             <h3>Uploaded Image</h3>
             <p>Dimensions: <span id="image-dimensions">0 x 0</span> pixels</p>
             <div class="image-display">
               <img id="uploaded-image" alt="Uploaded image">
-              <div class="image-overlay">
-                <p>Select a size</p>
-              </div>
+            </div>
+            <div class="image-analysis" id="image-analysis">
+              <!-- Analysis text will be added here -->
             </div>
           </div>
 
@@ -85,47 +108,25 @@
             <div class="size-grid" id="size-grid">
               <!-- Size options will be dynamically added here -->
             </div>
-            <div class="custom-size-container">
-              <button class="custom-size-button">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                </svg>
-                <span>Custom Size</span>
-              </button>
 
+            <div class="custom-size-form-container">
               <form class="custom-size-form hidden">
                 <div class="input-wrapper">
-                  <input type="text" placeholder="Width" required>
+                  <input type="text" class="width-field" placeholder="Width">
+                  <span class="field-label">W</span>
                 </div>
                 <div class="input-wrapper">
-                  <input type="text" placeholder="Height" required>
+                  <input type="text" class="height-field" placeholder="Height">
+                  <span class="field-label">H</span>
+                </div>
+                <div class="input-wrapper">
+                  <input type="text" class="ratio-field" placeholder="Ratio (e.g. 1.78)">
+                  <span class="field-label">Ratio</span>
                 </div>
                 <button type="button" class="unit-toggle">in</button>
                 <button type="submit">Add</button>
                 <button type="button" class="cancel-button">Cancel</button>
               </form>
-            </div>
-          </div>
-
-          <div class="grade-legend">
-            <h4>Print Quality Legend</h4>
-            <div class="legend-items">
-              <div class="legend-item">
-                <span class="color-swatch" style="background-color: #10B981"></span>
-                <span>Excellent (300+ DPI)</span>
-              </div>
-              <div class="legend-item">
-                <span class="color-swatch" style="background-color: #F59E0B"></span>
-                <span>Good (200-300 DPI)</span>
-              </div>
-              <div class="legend-item">
-                <span class="color-swatch" style="background-color: #F97316"></span>
-                <span>Fair (150-199 DPI)</span>
-              </div>
-              <div class="legend-item">
-                <span class="color-swatch" style="background-color: #EF4444"></span>
-                <span>Poor (Below 150 DPI)</span>
-              </div>
             </div>
           </div>
 
