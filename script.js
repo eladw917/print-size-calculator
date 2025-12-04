@@ -22,7 +22,7 @@ let customSizeFieldStates = {
 // DOM element references
 const elements = {
   calcContainer: document.querySelector('.calc-container'),
-  imageDimensions: document.getElementById('image-dimensions'),
+  imageTitle: document.getElementById('image-title'),
   uploadedImage: document.getElementById('uploaded-image'),
   imageAnalysis: document.getElementById('image-analysis'),
   sizeGrid: document.getElementById('size-grid'),
@@ -189,7 +189,7 @@ function handleImageUpload(imageData) {
 
   // Update image display
   elements.uploadedImage.src = imageData.src;
-  elements.imageDimensions.textContent = `${imageData.width} x ${imageData.height} pixels`;
+  elements.imageTitle.textContent = `Uploaded Image (${imageData.width} x ${imageData.height} pixels)`;
 
   // Update image analysis
   updateImageAnalysis();

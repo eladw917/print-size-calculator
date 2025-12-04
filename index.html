@@ -35,9 +35,10 @@
           <input type="file" class="hidden-input" accept="image/*">
         </button>
 
-        <button class="url-button">
-          <span>Enter URL</span>
-        </button>
+        <div style="position: relative;">
+          <button class="url-button">
+            <span>Enter URL</span>
+          </button>
 
           <form class="url-form hidden">
             <input
@@ -49,6 +50,7 @@
               Submit
             </button>
           </form>
+        </div>
       </div>
     </div>
   </header>
@@ -93,8 +95,7 @@
         </div>
         <div class="results-container">
           <div class="image-preview">
-            <h3>Uploaded Image</h3>
-            <p>Dimensions: <span id="image-dimensions">0 x 0</span> pixels</p>
+            <h3 id="image-title">Uploaded Image</h3>
             <div class="image-display">
               <img id="uploaded-image" alt="Uploaded image">
             </div>
