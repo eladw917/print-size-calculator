@@ -62,10 +62,10 @@ const COMMON_SIZES = [
 
 // Utility functions
 function getGradeColor(dpi) {
-  if (dpi > 300) return '#4F46E5'; // Indigo-600
-  if (dpi >= 200) return '#6366F1'; // Indigo-500
-  if (dpi >= 150) return '#818CF8'; // Indigo-400
-  return '#A5B4FC'; // Indigo-300
+  if (dpi > 300) return '#10B981'; // Green - Excellent
+  if (dpi >= 200) return '#F59E0B'; // Yellow - Good
+  if (dpi >= 150) return '#F97316'; // Orange - Fair
+  return '#EF4444'; // Red - Poor
 }
 
 function getGradeText(dpi) {
