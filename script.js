@@ -285,10 +285,24 @@ function updateImageAnalysis() {
     // Show selected size detailed analysis
     const selectedResult = appState.analysis.find(r => r.size === appState.selectedSize);
     if (selectedResult) {
+      // Get size dimensions
+      const sizeInfo = [...COMMON_SIZES, ...appState.customSizes].find(size => size.name === appState.selectedSize);
+      let sizeDisplay = appState.selectedSize;
+
+      if (sizeInfo && sizeInfo.width && sizeInfo.height) {
+        // Always show both inch and cm measurements
+        const inchWidth = sizeInfo.width;
+        const inchHeight = sizeInfo.height;
+        const cmWidth = Math.round(sizeInfo.width * 2.54 * 100) / 100;
+        const cmHeight = Math.round(sizeInfo.height * 2.54 * 100) / 100;
+
+        sizeDisplay = `${inchWidth} × ${inchHeight} in / ${cmWidth} × ${cmHeight} cm`;
+      }
+
       elements.imageAnalysis.innerHTML = `
         <div class="analysis-text">
           <div class="analysis-summary">
-            <strong>Selected Size:</strong> ${appState.selectedSize}<br>
+            <strong>Selected Size:</strong> ${sizeDisplay}<br>
             <strong>Quality:</strong> ${selectedResult.grade} (${selectedResult.dpi} DPI)<br>
             <strong>Details:</strong> ${selectedResult.explanation}
           </div>
