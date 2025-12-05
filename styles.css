@@ -206,15 +206,12 @@ html, body {
 }
 
 .calc-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   margin-bottom: 0.5rem;
 }
 
 .calc-header h2 {
   margin: 0;
-  flex: 1;
+  margin-bottom: 0.5rem;
 }
 
 .calc-header .grade-legend {
@@ -594,7 +591,7 @@ html, body {
 
 .image-preview h3, .size-selector h3, .size-details h3 {
   font-size: 1.8rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
   color: #1e293b;
 }
 
@@ -604,6 +601,8 @@ html, body {
   border-radius: 0.4rem;
   position: relative;
   overflow: hidden;
+  margin-top: 0.2rem;
+  margin-bottom: 0.2rem;
 }
 
 .image-display img {
@@ -615,14 +614,60 @@ html, body {
 
 #quality-canvas {
   position: absolute;
-  top: 16px;
-  left: 16px;
-  width: calc(100% - 32px);
-  height: calc(100% - 32px);
   border-radius: 0.4rem;
   display: block; /* Always visible as primary display */
   pointer-events: none; /* Don't interfere with interactions */
+  /* Width, height, top, and left will be set dynamically via JavaScript */
 }
+
+.preview-frame {
+  position: absolute;
+  border: 2px solid #000000;
+  background-color: transparent;
+  pointer-events: none;
+  z-index: 10;
+  box-sizing: border-box;
+}
+
+.fitting-controls {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.fitting-buttons-row {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.fitting-button {
+  padding: 0.8rem 1.6rem;
+  border: 2px solid #3b82f6;
+  background-color: white;
+  color: #3b82f6;
+  border-radius: 0.4rem;
+  cursor: pointer;
+  font-size: 1.4rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.fitting-button:hover {
+  background-color: #eff6ff;
+}
+
+.fitting-button.active {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.fitting-button.active:hover {
+  background-color: #2563eb;
+}
+
 
 .image-analysis {
   margin-top: 10px;
@@ -800,9 +845,61 @@ html, body {
   margin: 0;
 }
 
+.summary-text {
+  margin-top: 1rem;
+  font-size: 1.4rem;
+  color: #4b5563;
+  line-height: 1.6;
+}
+
+.summary-text p {
+  margin: 0.5rem 0;
+}
+
+.summary-text strong {
+  color: #1e293b;
+  font-weight: 600;
+}
+
+.summary-text .measurement-with-tooltip {
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  cursor: help;
+  position: relative;
+}
+
+.summary-text .measurement-with-tooltip:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #1e293b;
+  color: white;
+  padding: 0.5rem 0.8rem;
+  border-radius: 0.4rem;
+  font-size: 1.2rem;
+  white-space: nowrap;
+  z-index: 1000;
+  margin-bottom: 0.5rem;
+  box-shadow: 0 0.2rem 0.4rem rgba(0, 0, 0, 0.2);
+}
+
+.summary-text .measurement-with-tooltip:hover::before {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 0.5rem solid transparent;
+  border-top-color: #1e293b;
+  margin-bottom: -0.5rem;
+  z-index: 1001;
+}
+
 .legend-items {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 10px;
 }
 

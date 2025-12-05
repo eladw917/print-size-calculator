@@ -6,7 +6,9 @@ let appState = {
   selectedGrade: null,
   selectedExplanation: null,
   backgroundColor: '',
-  customSizes: []
+  customSizes: [],
+  fittingMode: 'fit', // 'fit' or 'fill'
+  imageSizePercent: 100 // Percentage of image size relative to frame (50-200, can exceed frame)
 };
 
 // Debounce timer for custom size input
@@ -22,10 +24,13 @@ let customSizeFieldStates = {
 // DOM element references
 const elements = {
   calcContainer: document.querySelector('.calc-container'),
-  imageTitle: document.getElementById('image-title'),
+  imageTitleHeader: document.getElementById('image-title-header'),
+  summaryText: document.getElementById('summary-text'),
   uploadedImage: document.getElementById('uploaded-image'),
   imageAnalysis: document.getElementById('image-analysis'),
   qualityCanvas: document.getElementById('quality-canvas'),
+  previewFrame: document.getElementById('preview-frame'),
+  fittingControls: document.getElementById('fitting-controls'),
   sizeGrid: document.getElementById('size-grid'),
   sizeDetails: document.getElementById('size-details'),
   selectedSize: document.getElementById('selected-size'),
@@ -155,6 +160,34 @@ function setupEventListeners() {
   document.querySelectorAll('.width-field, .height-field').forEach(input => {
     input.addEventListener('input', validateNumericInput);
   });
+
+  // Fitting mode buttons (exclude +/- buttons which don't have data-mode)
+  document.querySelectorAll('.fitting-button[data-mode]').forEach(button => {
+    button.addEventListener('click', (e) => {
+      const mode = e.target.getAttribute('data-mode');
+      if (mode) {
+        setFittingMode(mode);
+      }
+    });
+  });
+
+  // Image size adjustment buttons
+  const decreaseImageSizeBtn = document.getElementById('decrease-image-size');
+  const increaseImageSizeBtn = document.getElementById('increase-image-size');
+  
+  if (decreaseImageSizeBtn) {
+    decreaseImageSizeBtn.addEventListener('click', (e) => {
+      e.stopPropagation(); // Prevent any other handlers
+      adjustImageSize(-5); // Decrease by 5%
+    });
+  }
+  
+  if (increaseImageSizeBtn) {
+    increaseImageSizeBtn.addEventListener('click', (e) => {
+      e.stopPropagation(); // Prevent any other handlers
+      adjustImageSize(5); // Increase by 5%
+    });
+  }
 }
 
 // File upload handler
@@ -190,11 +223,11 @@ function handleImageUpload(imageData) {
 
   // Update image display
   elements.uploadedImage.src = imageData.src;
-  elements.imageTitle.textContent = `Uploaded Image (${imageData.width} x ${imageData.height} pixels)`;
+  elements.imageTitleHeader.textContent = `Uploaded Image (${imageData.width} x ${imageData.height} pixels)`;
 
   // Show DPI preview when image loads
   elements.uploadedImage.onload = () => {
-    updateDpiPreview(300); // Start with perfect quality
+    updateDpiPreview(300, null); // Start with perfect quality
   };
 
   // Update image analysis
@@ -281,6 +314,324 @@ function renderSizeOptions() {
   elements.sizeGrid.appendChild(addButton);
 }
 
+// Calculate DPI based on printed image size
+function calculateDpiFromPrintedSize(sizeInfo) {
+  if (!appState.image || !sizeInfo) return null;
+  
+  const img = appState.image;
+  const imgWidth = img.width;
+  const imgHeight = img.height;
+  const imageAspectRatio = imgWidth / imgHeight;
+  
+  // Determine if orientations match
+  const isImageLandscape = imageAspectRatio > 1;
+  const frameAspectRatio = sizeInfo.width / sizeInfo.height;
+  const isFrameLandscape = frameAspectRatio > 1;
+  
+  // Always use original frame dimensions (not swapped) for display
+  const frameWidth = sizeInfo.width;
+  const frameHeight = sizeInfo.height;
+  
+  // Account for image size percentage
+  const imageSizePercent = appState.imageSizePercent || 100;
+  const imageSizeFactor = imageSizePercent / 100;
+  
+  // For fill mode, we need to consider orientation matching
+  let effectiveFrameWidth, effectiveFrameHeight;
+  
+  if (appState.fittingMode === 'fill' && isImageLandscape !== isFrameLandscape) {
+    // In fill mode with mismatched orientations, swap the frame dimensions
+    effectiveFrameWidth = frameHeight * imageSizeFactor;
+    effectiveFrameHeight = frameWidth * imageSizeFactor;
+  } else {
+    effectiveFrameWidth = frameWidth * imageSizeFactor;
+    effectiveFrameHeight = frameHeight * imageSizeFactor;
+  }
+  
+  let printedImageWidth, printedImageHeight;
+  
+  if (appState.fittingMode === 'fill') {
+    // Fill mode: printed image size equals effective frame size
+    printedImageWidth = effectiveFrameWidth;
+    printedImageHeight = effectiveFrameHeight;
+  } else {
+    // Fit mode: calculate actual printed image size to fit within effective frame
+    let effectiveWidth = effectiveFrameWidth;
+    let effectiveHeight = effectiveFrameHeight;
+    
+    if (isImageLandscape !== isFrameLandscape) {
+      // Swap frame dimensions to match image orientation for fitting calculations
+      effectiveWidth = effectiveFrameHeight;
+      effectiveHeight = effectiveFrameWidth;
+    }
+    
+    // Calculate printed size based on effective frame
+    if (imageAspectRatio > effectiveWidth / effectiveHeight) {
+      // Image is wider - fit to effective frame width
+      const calculatedWidth = effectiveWidth;
+      const calculatedHeight = effectiveWidth / imageAspectRatio;
+      // Convert back to original frame orientation
+      if (isImageLandscape !== isFrameLandscape) {
+        printedImageWidth = calculatedHeight;
+        printedImageHeight = calculatedWidth;
+      } else {
+        printedImageWidth = calculatedWidth;
+        printedImageHeight = calculatedHeight;
+      }
+    } else {
+      // Image is taller - fit to effective frame height
+      const calculatedHeight = effectiveHeight;
+      const calculatedWidth = effectiveHeight * imageAspectRatio;
+      // Convert back to original frame orientation
+      if (isImageLandscape !== isFrameLandscape) {
+        printedImageWidth = calculatedHeight;
+        printedImageHeight = calculatedWidth;
+      } else {
+        printedImageWidth = calculatedWidth;
+        printedImageHeight = calculatedHeight;
+      }
+    }
+  }
+  
+  // Calculate DPI based on printed image size
+  return Math.min(imgWidth / printedImageWidth, imgHeight / printedImageHeight);
+}
+
+// Helper function to create measurement text with info icon for single dimension
+function createMeasurementWithInfo(inches, cm, label = '') {
+  const tooltipText = `${inches.toFixed(2)} inches (${cm} cm)`;
+  return `<span class="measurement-with-tooltip" data-tooltip="${tooltipText}" title="${tooltipText}">${inches.toFixed(2)}"</span>${label ? ' ' + label : ''}`;
+}
+
+// Helper function to create measurement text with info icon for two dimensions
+function createMeasurementWithInfo2D(widthInches, heightInches, widthCm, heightCm, label = '') {
+  const tooltipText = `${widthInches.toFixed(2)} × ${heightInches.toFixed(2)} inches (${widthCm} × ${heightCm} cm)`;
+  return `<span class="measurement-with-tooltip" data-tooltip="${tooltipText}" title="${tooltipText}">${widthInches.toFixed(2)}" × ${heightInches.toFixed(2)}"</span>${label ? ' ' + label : ''}`;
+}
+
+// Update summary text in header
+function updateSummary() {
+  if (!appState.image || !elements.summaryText) return;
+
+  const { width: imgWidth, height: imgHeight } = appState.image;
+
+  if (appState.selectedSize) {
+    const selectedResult = appState.analysis.find(r => r.size === appState.selectedSize);
+    if (selectedResult) {
+      const sizeInfo = [...COMMON_SIZES, ...appState.customSizes].find(size => size.name === appState.selectedSize);
+      if (!sizeInfo) return;
+
+      // Format frame size display
+      const frameWidth = sizeInfo.width;
+      const frameHeight = sizeInfo.height;
+      const frameCmWidth = Math.round(frameWidth * 2.54 * 100) / 100;
+      const frameCmHeight = Math.round(frameHeight * 2.54 * 100) / 100;
+      const frameDisplay = createMeasurementWithInfo2D(frameWidth, frameHeight, frameCmWidth, frameCmHeight);
+
+      // Calculate printed image size and coverage
+      const imageAspectRatio = imgWidth / imgHeight;
+      const isImageLandscape = imageAspectRatio > 1;
+      const frameAspectRatio = frameWidth / frameHeight;
+      const isFrameLandscape = frameAspectRatio > 1;
+      
+      const imageSizePercent = appState.imageSizePercent || 100;
+      const imageSizeFactor = imageSizePercent / 100;
+      
+      let effectiveFrameWidth, effectiveFrameHeight;
+      if (appState.fittingMode === 'fill' && isImageLandscape !== isFrameLandscape) {
+        effectiveFrameWidth = frameHeight * imageSizeFactor;
+        effectiveFrameHeight = frameWidth * imageSizeFactor;
+      } else {
+        effectiveFrameWidth = frameWidth * imageSizeFactor;
+        effectiveFrameHeight = frameHeight * imageSizeFactor;
+      }
+      
+      let printedImageWidth, printedImageHeight;
+      let frameCoveragePercentage, imageCoveragePercentage;
+      let marginsInfo = '';
+      let hiddenImageInfo = '';
+      
+      if (appState.fittingMode === 'fill') {
+        printedImageWidth = effectiveFrameWidth;
+        printedImageHeight = effectiveFrameHeight;
+        
+        frameCoveragePercentage = Math.min(100, Math.round((imageSizeFactor * imageSizeFactor) * 100));
+        
+        // In fill mode, calculate what part of image is cropped (not visible)
+        // The image is scaled to fill the frame, so parts extend beyond
+        const scaleX = effectiveFrameWidth / imgWidth;
+        const scaleY = effectiveFrameHeight / imgHeight;
+        const fillScale = Math.max(scaleX, scaleY);
+        
+        const scaledImageWidth = imgWidth * fillScale;
+        const scaledImageHeight = imgHeight * fillScale;
+        
+        // Calculate cropped dimensions (parts that extend beyond frame)
+        const croppedWidth = Math.max(0, scaledImageWidth - effectiveFrameWidth);
+        const croppedHeight = Math.max(0, scaledImageHeight - effectiveFrameHeight);
+        const croppedWidthInches = croppedWidth / fillScale;
+        const croppedHeightInches = croppedHeight / fillScale;
+        const croppedWidthCm = Math.round((croppedWidthInches * 2.54) * 100) / 100;
+        const croppedHeightCm = Math.round((croppedHeightInches * 2.54) * 100) / 100;
+        
+        // Calculate image coverage first
+        const visibleImageWidth = Math.min(scaledImageWidth, effectiveFrameWidth);
+        const visibleImageHeight = Math.min(scaledImageHeight, effectiveFrameHeight);
+        const visibleImageArea = visibleImageWidth * visibleImageHeight;
+        const totalImageArea = imgWidth * imgHeight;
+        imageCoveragePercentage = Math.round((visibleImageArea / totalImageArea) * 100);
+        
+        // Calculate cropped percentage for fill mode
+        if (imageCoveragePercentage < 100) {
+          hiddenImageInfo = `${100 - imageCoveragePercentage}%`;
+        } else {
+          hiddenImageInfo = '';
+        }
+        
+        // In fill mode, margins only exist if image size was reduced (using - button)
+        const marginWidth = Math.max(0, (frameWidth - printedImageWidth) / 2);
+        const marginHeight = Math.max(0, (frameHeight - printedImageHeight) / 2);
+        const marginWidthCm = Math.round(marginWidth * 2.54 * 100) / 100;
+        const marginHeightCm = Math.round(marginHeight * 2.54 * 100) / 100;
+        
+        // Store margin values separately for formatting
+        marginWidthValue = marginWidth > 0.01 ? marginWidth : 0;
+        marginHeightValue = marginHeight > 0.01 ? marginHeight : 0;
+        marginWidthCmValue = marginWidth > 0.01 ? marginWidthCm : 0;
+        marginHeightCmValue = marginHeight > 0.01 ? marginHeightCm : 0;
+        
+        marginsInfo = (marginWidthValue > 0 || marginHeightValue > 0) ? 'has_margins' : '';
+      } else {
+        // Fit mode
+        let effectiveWidth = effectiveFrameWidth;
+        let effectiveHeight = effectiveFrameHeight;
+        
+        if (isImageLandscape !== isFrameLandscape) {
+          effectiveWidth = effectiveFrameHeight;
+          effectiveHeight = effectiveFrameWidth;
+        }
+        
+        if (imageAspectRatio > effectiveWidth / effectiveHeight) {
+          const calculatedWidth = effectiveWidth;
+          const calculatedHeight = effectiveWidth / imageAspectRatio;
+          if (isImageLandscape !== isFrameLandscape) {
+            printedImageWidth = calculatedHeight;
+            printedImageHeight = calculatedWidth;
+          } else {
+            printedImageWidth = calculatedWidth;
+            printedImageHeight = calculatedHeight;
+          }
+        } else {
+          const calculatedHeight = effectiveHeight;
+          const calculatedWidth = effectiveHeight * imageAspectRatio;
+          if (isImageLandscape !== isFrameLandscape) {
+            printedImageWidth = calculatedHeight;
+            printedImageHeight = calculatedWidth;
+          } else {
+            printedImageWidth = calculatedWidth;
+            printedImageHeight = calculatedHeight;
+          }
+        }
+        
+        const frameArea = frameWidth * frameHeight;
+        const printedImageArea = printedImageWidth * printedImageHeight;
+        frameCoveragePercentage = Math.min(100, Math.round((printedImageArea / frameArea) * 100));
+        
+        // In fit mode: calculate margins (space between frame and image edges)
+        const marginWidth = (frameWidth - printedImageWidth) / 2;
+        const marginHeight = (frameHeight - printedImageHeight) / 2;
+        const marginWidthCm = Math.round(marginWidth * 2.54 * 100) / 100;
+        const marginHeightCm = Math.round(marginHeight * 2.54 * 100) / 100;
+        
+        // Store margin values separately for formatting
+        marginWidthValue = marginWidth > 0.01 ? marginWidth : 0;
+        marginHeightValue = marginHeight > 0.01 ? marginHeight : 0;
+        marginWidthCmValue = marginWidth > 0.01 ? marginWidthCm : 0;
+        marginHeightCmValue = marginHeight > 0.01 ? marginHeightCm : 0;
+        
+        marginsInfo = (marginWidthValue > 0 || marginHeightValue > 0) ? 'has_margins' : '';
+        
+        // In fit mode, entire image is visible, nothing is cropped
+        hiddenImageInfo = '';
+        imageCoveragePercentage = 100;
+      }
+      
+      // Format printed image size
+      const printedCmWidth = Math.round(printedImageWidth * 2.54 * 100) / 100;
+      const printedCmHeight = Math.round(printedImageHeight * 2.54 * 100) / 100;
+      
+      // Calculate DPI
+      const calculatedDpi = Math.min(imgWidth / printedImageWidth, imgHeight / printedImageHeight);
+      const roundedDpi = Math.round(calculatedDpi);
+      const calculatedGrade = getGradeText(calculatedDpi);
+      
+      // Build natural flowing text - start with quality
+      const qualityText = calculatedGrade.charAt(0).toUpperCase() + calculatedGrade.slice(1).toLowerCase();
+      let summaryText = `The print quality will be <strong>${qualityText}</strong> at ${roundedDpi} DPI. `;
+      
+      summaryText += `You've selected a ${appState.selectedSize} frame measuring ${frameDisplay}. `;
+      summaryText += `In these measurements, print your image at ${createMeasurementWithInfo2D(printedImageWidth, printedImageHeight, printedCmWidth, printedCmHeight)}. `;
+      
+      if (appState.fittingMode === 'fit') {
+        // Check if both margins are 0
+        if (marginWidthValue === 0 && marginHeightValue === 0) {
+          summaryText += `The image will fit perfectly in the frame. `;
+        } else {
+          // Build margin text only for non-zero margins
+          const marginParts = [];
+          if (marginHeightValue > 0) {
+            marginParts.push(`The vertical margins will be ${createMeasurementWithInfo(marginHeightValue, marginHeightCmValue)}`);
+          }
+          if (marginWidthValue > 0) {
+            marginParts.push(`The horizontal margins will be ${createMeasurementWithInfo(marginWidthValue, marginWidthCmValue)}`);
+          }
+          if (marginParts.length > 0) {
+            summaryText += marginParts.join(' and ') + '. ';
+          }
+        }
+      } else {
+        if (hiddenImageInfo) {
+          summaryText += `Approximately ${hiddenImageInfo} of the image will be cropped and not visible. `;
+        } else {
+          summaryText += `The entire image will be visible. `;
+        }
+        
+        // Check if both margins are 0
+        if (marginWidthValue === 0 && marginHeightValue === 0) {
+          summaryText += `The image will fit perfectly in the frame. `;
+        } else {
+          // Build margin text only for non-zero margins
+          const marginParts = [];
+          if (marginHeightValue > 0) {
+            marginParts.push(`The vertical margins will be ${createMeasurementWithInfo(marginHeightValue, marginHeightCmValue)}`);
+          }
+          if (marginWidthValue > 0) {
+            marginParts.push(`The horizontal margins will be ${createMeasurementWithInfo(marginWidthValue, marginWidthCmValue)}`);
+          }
+          if (marginParts.length > 0) {
+            summaryText += marginParts.join(' and ') + '. ';
+          }
+        }
+      }
+      
+      elements.summaryText.innerHTML = `<p>${summaryText}</p>`;
+    }
+  } else {
+    // Show maximum frame size and instruction when no frame is selected
+    const maxWidthInches = Math.round((imgWidth / 300) * 100) / 100;
+    const maxHeightInches = Math.round((imgHeight / 300) * 100) / 100;
+    const maxWidthCm = Math.round((maxWidthInches * 2.54) * 100) / 100;
+    const maxHeightCm = Math.round((maxHeightInches * 2.54) * 100) / 100;
+
+    const maxSizeDisplay = createMeasurementWithInfo2D(maxWidthInches, maxHeightInches, maxWidthCm, maxHeightCm);
+    
+    elements.summaryText.innerHTML = `
+      <p>For optimal quality (300 DPI), your image can be printed up to <strong>${maxSizeDisplay}</strong>.</p>
+      <p>Select a frame size from the options on the right to calculate the actual print quality for that specific size.</p>
+    `;
+  }
+}
+
 // Update image analysis display
 function updateImageAnalysis() {
   if (!appState.image) return;
@@ -305,52 +656,180 @@ function updateImageAnalysis() {
         sizeDisplay = `${inchWidth} × ${inchHeight} in / ${cmWidth} × ${cmHeight} cm`;
       }
 
-      elements.imageAnalysis.innerHTML = `
-        <div class="analysis-text">
-          <div class="analysis-summary">
-            <strong>Selected Size:</strong> ${sizeDisplay}<br>
-            <strong>Quality:</strong> ${selectedResult.grade} (${selectedResult.dpi} DPI)<br>
-            <strong>Details:</strong> ${selectedResult.explanation}
+      // Calculate printed image size based on fitting mode
+      let printedImageWidth, printedImageHeight;
+      let frameCoveragePercentage;
+      let imageCoveragePercentage;
+      
+      if (appState.image && sizeInfo) {
+        const img = appState.image;
+        const imgWidth = img.width;
+        const imgHeight = img.height;
+        const imageAspectRatio = imgWidth / imgHeight;
+        
+        // Determine if orientations match (same logic as in updatePreviewFrame)
+        const isImageLandscape = imageAspectRatio > 1;
+        const frameAspectRatio = sizeInfo.width / sizeInfo.height;
+        const isFrameLandscape = frameAspectRatio > 1;
+        
+        // Always use original frame dimensions (not swapped) for display
+        const frameWidth = sizeInfo.width;
+        const frameHeight = sizeInfo.height;
+        
+        // Account for image size percentage
+        const imageSizePercent = appState.imageSizePercent || 100;
+        const imageSizeFactor = imageSizePercent / 100;
+        
+        // For fill mode, we need to consider orientation matching
+        let effectiveFrameWidth, effectiveFrameHeight;
+        
+        if (appState.fittingMode === 'fill' && isImageLandscape !== isFrameLandscape) {
+          // In fill mode with mismatched orientations, swap the frame dimensions
+          effectiveFrameWidth = frameHeight * imageSizeFactor;
+          effectiveFrameHeight = frameWidth * imageSizeFactor;
+        } else {
+          effectiveFrameWidth = frameWidth * imageSizeFactor;
+          effectiveFrameHeight = frameHeight * imageSizeFactor;
+        }
+        
+        if (appState.fittingMode === 'fill') {
+          // Fill mode: printed image size equals effective frame size (based on image size percentage)
+          printedImageWidth = effectiveFrameWidth;
+          printedImageHeight = effectiveFrameHeight;
+          
+          // Frame coverage: % of frame covered by printed image (capped at 100%)
+          frameCoveragePercentage = Math.min(100, Math.round((imageSizeFactor * imageSizeFactor) * 100));
+          
+          // Image coverage: % of image that is visible within the original frame
+          // Calculate what portion of the printed image fits within the original frame bounds
+          const visibleImageWidth = Math.min(printedImageWidth, frameWidth);
+          const visibleImageHeight = Math.min(printedImageHeight, frameHeight);
+          const visibleImageArea = visibleImageWidth * visibleImageHeight;
+          
+          // Total printed image area
+          const totalImageArea = printedImageWidth * printedImageHeight;
+          
+          // Image coverage = visible image area / total image area
+          imageCoveragePercentage = Math.round((visibleImageArea / totalImageArea) * 100);
+        } else {
+          // Fit mode: calculate actual printed image size to fit within effective frame
+          // Use effective frame dimensions for calculation (swapped if orientations don't match)
+          let effectiveWidth = effectiveFrameWidth;
+          let effectiveHeight = effectiveFrameHeight;
+          
+          if (isImageLandscape !== isFrameLandscape) {
+            // Swap frame dimensions to match image orientation for fitting calculations
+            effectiveWidth = effectiveFrameHeight;
+            effectiveHeight = effectiveFrameWidth;
+          }
+          
+          // Calculate printed size based on effective frame
+          if (imageAspectRatio > effectiveWidth / effectiveHeight) {
+            // Image is wider - fit to effective frame width
+            const calculatedWidth = effectiveWidth;
+            const calculatedHeight = effectiveWidth / imageAspectRatio;
+            // Convert back to original frame orientation
+            if (isImageLandscape !== isFrameLandscape) {
+              printedImageWidth = calculatedHeight;
+              printedImageHeight = calculatedWidth;
+            } else {
+              printedImageWidth = calculatedWidth;
+              printedImageHeight = calculatedHeight;
+            }
+          } else {
+            // Image is taller - fit to effective frame height
+            const calculatedHeight = effectiveHeight;
+            const calculatedWidth = effectiveHeight * imageAspectRatio;
+            // Convert back to original frame orientation
+            if (isImageLandscape !== isFrameLandscape) {
+              printedImageWidth = calculatedHeight;
+              printedImageHeight = calculatedWidth;
+            } else {
+              printedImageWidth = calculatedWidth;
+              printedImageHeight = calculatedHeight;
+            }
+          }
+          
+          // Frame coverage: % of frame covered by printed image (capped at 100%)
+          const frameArea = frameWidth * frameHeight;
+          const printedImageArea = printedImageWidth * printedImageHeight;
+          frameCoveragePercentage = Math.min(100, Math.round((printedImageArea / frameArea) * 100));
+          
+          // Image coverage: % of image that is visible within the original frame
+          // Calculate what portion of the printed image fits within the original frame bounds
+          const visibleImageWidth = Math.min(printedImageWidth, frameWidth);
+          const visibleImageHeight = Math.min(printedImageHeight, frameHeight);
+          const visibleImageArea = visibleImageWidth * visibleImageHeight;
+          
+          // Total printed image area
+          const totalImageArea = printedImageWidth * printedImageHeight;
+          
+          // Image coverage = visible image area / total image area
+          imageCoveragePercentage = Math.round((visibleImageArea / totalImageArea) * 100);
+        }
+        
+        // Format printed image size display (always in original frame orientation)
+        const printedCmWidth = Math.round(printedImageWidth * 2.54 * 100) / 100;
+        const printedCmHeight = Math.round(printedImageHeight * 2.54 * 100) / 100;
+        const printedImageDisplay = `${printedImageWidth} × ${printedImageHeight} in / ${printedCmWidth} × ${printedCmHeight} cm`;
+        
+        // Calculate DPI based on printed image size (not frame size)
+        const calculatedDpi = Math.min(imgWidth / printedImageWidth, imgHeight / printedImageHeight);
+        const roundedDpi = Math.round(calculatedDpi);
+        const calculatedGrade = getGradeText(calculatedDpi);
+        const calculatedExplanation = getGradeExplanation(calculatedDpi);
+        
+        elements.imageAnalysis.innerHTML = `
+          <div class="analysis-text">
+            <div class="analysis-summary">
+              <strong>Frame Size:</strong> ${sizeDisplay}<br>
+              <strong>Printed Image Size:</strong> ${printedImageDisplay}<br>
+              <strong>Frame Coverage:</strong> ${frameCoveragePercentage}%<br>
+              <strong>Image Coverage:</strong> ${imageCoveragePercentage}%<br>
+              <strong>Quality:</strong> ${calculatedGrade} (${roundedDpi} DPI)<br>
+              <strong>Details:</strong> ${calculatedExplanation}
+            </div>
           </div>
-        </div>
-      `;
-
-      // Update DPI quality preview
-      updateDpiPreview(selectedResult.dpi);
+        `;
+        
+        // Update DPI quality preview with calculated DPI based on printed image size
+        updateDpiPreview(calculatedDpi, sizeInfo);
+      } else {
+        elements.imageAnalysis.innerHTML = `
+          <div class="analysis-text">
+            <div class="analysis-summary">
+              <strong>Frame Size:</strong> ${sizeDisplay}<br>
+              <strong>Quality:</strong> ${selectedResult.grade} (${selectedResult.dpi} DPI)<br>
+              <strong>Details:</strong> ${selectedResult.explanation}
+            </div>
+          </div>
+        `;
+        
+        // Update DPI quality preview with original DPI
+        updateDpiPreview(selectedResult.dpi, sizeInfo);
+      }
     }
   } else {
-    // Show maximum print size at 300 DPI
-    const maxWidthInches = Math.round((imgWidth / 300) * 100) / 100;
-    const maxHeightInches = Math.round((imgHeight / 300) * 100) / 100;
+    // Clear analysis display when no frame is selected (summary shows max size info)
+    elements.imageAnalysis.innerHTML = '';
 
-    // Convert to cm if needed
-    const unit = elements.unitToggle.textContent;
-    let displayWidth = maxWidthInches;
-    let displayHeight = maxHeightInches;
-    let unitText = 'in';
-
-    if (unit === 'cm') {
-      displayWidth = Math.round((maxWidthInches * 2.54) * 100) / 100;
-      displayHeight = Math.round((maxHeightInches * 2.54) * 100) / 100;
-      unitText = 'cm';
-    }
-
-    elements.imageAnalysis.innerHTML = `
-      <div class="analysis-text">
-        <strong>Max print size at 300 DPI:</strong> ${displayWidth} × ${displayHeight} ${unitText}
-      </div>
-    `;
+    // Hide fitting controls when no size is selected
+    elements.fittingControls.classList.add('hidden');
 
     // Show perfect quality preview when no size selected
-    updateDpiPreview(300);
+    updateDpiPreview(300, null);
   }
+
+  // Update summary text
+  updateSummary();
 }
 
 // Update DPI quality preview on canvas
-function updateDpiPreview(dpi) {
+function updateDpiPreview(dpi, sizeInfo) {
   const canvas = elements.qualityCanvas;
   const ctx = canvas.getContext('2d');
   const img = elements.uploadedImage;
+  const frame = elements.previewFrame;
 
   // Clear canvas
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -364,37 +843,83 @@ function updateDpiPreview(dpi) {
     ctx.textAlign = 'center';
     ctx.fillText('Upload an image to see DPI preview', canvas.width / 2, canvas.height / 2);
     canvas.style.display = 'block';
+    frame.classList.add('hidden');
     return;
   }
 
   // Canvas is always visible as the primary display
   canvas.style.display = 'block';
 
-  // Canvas maintains full container size
-  // We show the ENTIRE image scaled to fit within the canvas (contain mode)
-  // This ensures no parts of the image are cropped
+  // Update frame if size is selected - this will resize the canvas
+  let frameWidth, frameHeight, frameX, frameY;
+  if (sizeInfo && sizeInfo.width && sizeInfo.height) {
+    const frameInfo = updatePreviewFrame(sizeInfo);
+    frameWidth = frameInfo.width;
+    frameHeight = frameInfo.height;
+    frameX = frameInfo.x;
+    frameY = frameInfo.y;
+  } else {
+    frame.classList.add('hidden');
+    // Reset canvas to original size when no size is selected
+    const imageDisplay = canvas.parentElement;
+    const containerWidth = imageDisplay.clientWidth;
+    const containerHeight = imageDisplay.clientHeight;
+    const canvasOffsetX = 16;
+    const canvasOffsetY = 16;
+    const availableWidth = containerWidth - (canvasOffsetX * 2);
+    const availableHeight = containerHeight - (canvasOffsetY * 2);
+    
+    canvas.width = availableWidth;
+    canvas.height = availableHeight;
+    canvas.style.width = `${availableWidth}px`;
+    canvas.style.height = `${availableHeight}px`;
+    canvas.style.left = `${canvasOffsetX}px`;
+    canvas.style.top = `${canvasOffsetY}px`;
+    
+    // No frame - use full canvas
+    frameWidth = canvas.width;
+    frameHeight = canvas.height;
+    frameX = 0;
+    frameY = 0;
+  }
 
-  // Calculate scaling to fit entire image within canvas
-  const scaleX = canvas.width / img.naturalWidth;
-  const scaleY = canvas.height / img.naturalHeight;
-  const scale = Math.min(scaleX, scaleY); // Use smaller scale to ensure entire image fits
-
-  // Calculate destination dimensions (scaled image size)
-  const destWidth = img.naturalWidth * scale;
-  const destHeight = img.naturalHeight * scale;
-
-  // Center the image perfectly (equal margins on all sides)
-  const destX = (canvas.width - destWidth) / 2;
-  const destY = (canvas.height - destHeight) / 2;
-
-  // Fill canvas with light background for letterboxing/pillarboxing
+  // Fill canvas with light background
   ctx.fillStyle = '#f8f9fa';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // To simulate DPI quality, we render the image at a lower effective resolution
-  // Higher DPI = crisp image, lower DPI = pixelated/blocky image
+  // Calculate effective frame size based on image size percentage
+  // frameWidth/frameHeight from updatePreviewFrame are already correctly oriented
+  const imageSizePercent = appState.imageSizePercent || 100;
+  const imageSizeFactor = imageSizePercent / 100; // e.g., 80% = 0.8 factor
+  const effectiveFrameWidth = frameWidth * imageSizeFactor;
+  const effectiveFrameHeight = frameHeight * imageSizeFactor;
+  const marginX = (frameWidth - effectiveFrameWidth) / 2;
+  const marginY = (frameHeight - effectiveFrameHeight) / 2;
 
-  // Draw the entire image scaled to fit within canvas
+  // Calculate scaling based on fitting mode
+  const scaleX = effectiveFrameWidth / img.naturalWidth;
+  const scaleY = effectiveFrameHeight / img.naturalHeight;
+  let scale, destWidth, destHeight, destX, destY;
+
+  if (appState.fittingMode === 'fill') {
+    // Fill mode: use larger scale to fill the effective frame (may crop)
+    scale = Math.max(scaleX, scaleY);
+    destWidth = img.naturalWidth * scale;
+    destHeight = img.naturalHeight * scale;
+    // Center the image within the effective frame (with margins)
+    destX = frameX + marginX + (effectiveFrameWidth - destWidth) / 2;
+    destY = frameY + marginY + (effectiveFrameHeight - destHeight) / 2;
+  } else {
+    // Fit mode: use smaller scale to fit entire image within effective frame
+    scale = Math.min(scaleX, scaleY);
+    destWidth = img.naturalWidth * scale;
+    destHeight = img.naturalHeight * scale;
+    // Center the image within the effective frame (with margins)
+    destX = frameX + marginX + (effectiveFrameWidth - destWidth) / 2;
+    destY = frameY + marginY + (effectiveFrameHeight - destHeight) / 2;
+  }
+
+  // Draw the image (may extend beyond frame in fill mode)
   ctx.drawImage(
     img,
     0, 0, img.naturalWidth, img.naturalHeight,
@@ -437,12 +962,140 @@ function updateDpiPreview(dpi) {
   }
 }
 
+// Update preview frame to match selected print size
+function updatePreviewFrame(sizeInfo) {
+  const frame = elements.previewFrame;
+  const canvas = elements.qualityCanvas;
+  const imageDisplay = canvas.parentElement; // .image-display container
+
+  if (!sizeInfo || !sizeInfo.width || !sizeInfo.height || !appState.image) {
+    frame.classList.add('hidden');
+    // Reset canvas to original size
+    canvas.style.width = 'calc(100% - 32px)';
+    canvas.style.height = 'calc(100% - 32px)';
+    return { width: 0, height: 0, x: 0, y: 0 };
+  }
+
+  // Canvas offset from container
+  const canvasOffsetX = 16;
+  const canvasOffsetY = 16;
+  
+  // Get the container dimensions
+  const containerWidth = imageDisplay.clientWidth;
+  const containerHeight = imageDisplay.clientHeight;
+  
+  // Available space for canvas (container minus offsets)
+  const availableWidth = containerWidth - (canvasOffsetX * 2);
+  const availableHeight = containerHeight - (canvasOffsetY * 2);
+
+  // Determine image orientation
+  const imageAspectRatio = appState.image.width / appState.image.height;
+  const isImageLandscape = imageAspectRatio > 1;
+
+  // Calculate the aspect ratio of the selected print size
+  let printAspectRatio = sizeInfo.width / sizeInfo.height;
+  const isPrintSizeLandscape = printAspectRatio > 1;
+
+  // Match frame orientation to image orientation
+  // If image and print size have different orientations, swap print size dimensions
+  if (isImageLandscape !== isPrintSizeLandscape) {
+    printAspectRatio = 1 / printAspectRatio; // Swap width/height ratio
+  }
+
+  // Calculate frame dimensions based on print size aspect ratio
+  let frameWidth, frameHeight;
+  
+  if (printAspectRatio > availableWidth / availableHeight) {
+    // Frame is wider - fit to available width
+    frameWidth = availableWidth;
+    frameHeight = availableWidth / printAspectRatio;
+  } else {
+    // Frame is taller - fit to available height
+    frameHeight = availableHeight;
+    frameWidth = availableHeight * printAspectRatio;
+  }
+
+  // For fill mode, calculate canvas size to accommodate the full scaled image
+  let canvasWidth, canvasHeight;
+  if (appState.fittingMode === 'fill' && appState.image) {
+    const img = appState.image;
+    const imageAspectRatio = img.width / img.height;
+    
+    // Calculate how large the image will be when scaled to fill the frame
+    const fillScaleX = frameWidth / img.width;
+    const fillScaleY = frameHeight / img.height;
+    const fillScale = Math.max(fillScaleX, fillScaleY); // Use larger scale for fill
+    
+    const scaledImageWidth = img.width * fillScale;
+    const scaledImageHeight = img.height * fillScale;
+    
+    // Canvas needs to be large enough to show the full scaled image
+    canvasWidth = Math.max(frameWidth, scaledImageWidth);
+    canvasHeight = Math.max(frameHeight, scaledImageHeight);
+    
+    // But don't exceed available space
+    canvasWidth = Math.min(canvasWidth, availableWidth);
+    canvasHeight = Math.min(canvasHeight, availableHeight);
+  } else {
+    // Fit mode: canvas matches frame size
+    canvasWidth = frameWidth;
+    canvasHeight = frameHeight;
+  }
+
+  // Center the canvas within the available space
+  const canvasX = (availableWidth - canvasWidth) / 2;
+  const canvasY = (availableHeight - canvasHeight) / 2;
+
+  // Update canvas size and position
+  canvas.width = canvasWidth;
+  canvas.height = canvasHeight;
+  canvas.style.width = `${canvasWidth}px`;
+  canvas.style.height = `${canvasHeight}px`;
+  canvas.style.left = `${canvasOffsetX + canvasX}px`;
+  canvas.style.top = `${canvasOffsetY + canvasY}px`;
+
+  // Frame dimensions (frame may be smaller than canvas in fill mode)
+  const frameX = (canvasWidth - frameWidth) / 2;
+  const frameY = (canvasHeight - frameHeight) / 2;
+
+  // Position and size the frame (centered within canvas)
+  frame.style.width = `${frameWidth}px`;
+  frame.style.height = `${frameHeight}px`;
+  frame.style.left = `${canvasOffsetX + canvasX + frameX}px`;
+  frame.style.top = `${canvasOffsetY + canvasY + frameY}px`;
+  frame.classList.remove('hidden');
+
+  // Return frame dimensions for use in image scaling
+  return {
+    width: frameWidth,
+    height: frameHeight,
+    x: frameX,
+    y: frameY
+  };
+}
+
 // Handle size selection
 function selectSize(result, sizeInfo) {
   appState.selectedSize = result.size;
   appState.selectedGrade = result.grade;
   appState.selectedExplanation = result.explanation;
   appState.backgroundColor = getGradeColor(result.dpi);
+
+  // Reset fitting mode and image size to defaults when selecting a new size
+  appState.fittingMode = 'fit';
+  appState.imageSizePercent = 100;
+
+  // Update button states to reflect defaults
+  document.querySelectorAll('.fitting-button').forEach(btn => {
+    if (btn.getAttribute('data-mode') === 'fit') {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+
+  // Show fitting controls when a size is selected
+  elements.fittingControls.classList.remove('hidden');
 
   // Update DOM - all info now shown in image analysis
   updateImageAnalysis();
@@ -453,8 +1106,56 @@ function selectSize(result, sizeInfo) {
   // Update selected button
   document.querySelectorAll('.size-option').forEach(btn => {
     btn.classList.remove('selected');
+    // Find the button that matches this size
+    const buttonText = btn.querySelector('span')?.textContent || btn.textContent.trim();
+    if (buttonText === result.size) {
+      btn.classList.add('selected');
+    }
   });
-  event.target.classList.add('selected');
+}
+
+// Set fitting mode and update preview
+function setFittingMode(mode) {
+  appState.fittingMode = mode;
+  
+  // Reset image size to 100% when switching fit/fill modes
+  appState.imageSizePercent = 100;
+  
+  // Update button states
+  document.querySelectorAll('.fitting-button').forEach(btn => {
+    if (btn.getAttribute('data-mode') === mode) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+
+  // Update preview and analysis if a size is selected
+  if (appState.selectedSize && appState.analysis) {
+    const selectedResult = appState.analysis.find(r => r.size === appState.selectedSize);
+    if (selectedResult) {
+      const sizeInfo = [...COMMON_SIZES, ...appState.customSizes].find(size => size.name === appState.selectedSize);
+      // Update both the preview and the analysis text
+      // updateImageAnalysis() will calculate DPI and call updateDpiPreview() internally
+      updateImageAnalysis();
+    }
+  }
+}
+
+// Adjust image size and update preview
+function adjustImageSize(delta) {
+  appState.imageSizePercent = Math.max(50, Math.min(200, (appState.imageSizePercent || 100) + delta));
+  
+  // Update preview and analysis if a size is selected
+  if (appState.selectedSize && appState.analysis) {
+    const selectedResult = appState.analysis.find(r => r.size === appState.selectedSize);
+    if (selectedResult) {
+      const sizeInfo = [...COMMON_SIZES, ...appState.customSizes].find(size => size.name === appState.selectedSize);
+      // Update both the preview and the analysis text
+      // updateImageAnalysis() will calculate DPI and call updateDpiPreview() internally
+      updateImageAnalysis();
+    }
+  }
 }
 
 // Toggle URL input form
@@ -743,7 +1444,7 @@ function removeCustomSize(sizeName) {
     appState.selectedExplanation = null;
     appState.backgroundColor = '';
     updateImageAnalysis(); // Update to show max size again
-    updateDpiPreview(300); // Reset to perfect quality preview
+    updateDpiPreview(300, null); // Reset to perfect quality preview
   }
 
   // Re-analyze with updated custom sizes

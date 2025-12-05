@@ -59,46 +59,24 @@
     <div class="main-container">
       <div class="calc-container hidden">
         <div class="calc-header">
-          <h2>Analysis Results</h2>
-          <div class="grade-legend">
-            <div class="legend-items">
-              <div class="legend-item">
-                <span class="color-swatch" style="background-color: #10B981"></span>
-                <div class="legend-text">
-                  <span class="quality">Excellent</span>
-                  <span class="range">(300+ DPI)</span>
-                </div>
-              </div>
-              <div class="legend-item">
-                <span class="color-swatch" style="background-color: #F59E0B"></span>
-                <div class="legend-text">
-                  <span class="quality">Good</span>
-                  <span class="range">(200-300 DPI)</span>
-                </div>
-              </div>
-              <div class="legend-item">
-                <span class="color-swatch" style="background-color: #F97316"></span>
-                <div class="legend-text">
-                  <span class="quality">Fair</span>
-                  <span class="range">(150-199 DPI)</span>
-                </div>
-              </div>
-              <div class="legend-item">
-                <span class="color-swatch" style="background-color: #EF4444"></span>
-                <div class="legend-text">
-                  <span class="quality">Poor</span>
-                  <span class="range">(Below 150 DPI)</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          <h2 id="image-title-header">Analysis Results</h2>
+          <div id="summary-text" class="summary-text"></div>
         </div>
         <div class="results-container">
           <div class="image-preview">
-            <h3 id="image-title">Uploaded Image</h3>
+            <h3>How will it look?</h3>
             <div class="image-display">
               <img id="uploaded-image" alt="Uploaded image" style="display: none;">
+              <div id="preview-frame" class="preview-frame hidden"></div>
               <canvas id="quality-canvas" width="368" height="218"></canvas>
+            </div>
+            <div class="fitting-controls hidden" id="fitting-controls">
+              <div class="fitting-buttons-row">
+                <button class="fitting-button active" data-mode="fit">Fit</button>
+                <button class="fitting-button" data-mode="fill">Fill</button>
+                <button class="fitting-button" id="decrease-image-size" title="Decrease image size">−</button>
+                <button class="fitting-button" id="increase-image-size" title="Increase image size">+</button>
+              </div>
             </div>
             <div class="image-analysis" id="image-analysis">
               <!-- Analysis text will be added here -->
@@ -106,7 +84,7 @@
           </div>
 
           <div class="size-selector">
-            <h3>Choose Your Preferred Print Size</h3>
+            <h3>What is the size of your frame?</h3>
             <div class="size-grid" id="size-grid">
               <!-- Size options will be dynamically added here -->
             </div>
@@ -129,6 +107,38 @@
                 <button type="submit">Add</button>
                 <button type="button" class="cancel-button">Cancel</button>
               </form>
+            </div>
+            <div class="grade-legend">
+              <div class="legend-items">
+                <div class="legend-item">
+                  <span class="color-swatch" style="background-color: #10B981"></span>
+                  <div class="legend-text">
+                    <span class="quality">Excellent</span>
+                    <span class="range">(300+ DPI)</span>
+                  </div>
+                </div>
+                <div class="legend-item">
+                  <span class="color-swatch" style="background-color: #F59E0B"></span>
+                  <div class="legend-text">
+                    <span class="quality">Good</span>
+                    <span class="range">(200-300 DPI)</span>
+                  </div>
+                </div>
+                <div class="legend-item">
+                  <span class="color-swatch" style="background-color: #F97316"></span>
+                  <div class="legend-text">
+                    <span class="quality">Fair</span>
+                    <span class="range">(150-199 DPI)</span>
+                  </div>
+                </div>
+                <div class="legend-item">
+                  <span class="color-swatch" style="background-color: #EF4444"></span>
+                  <div class="legend-text">
+                    <span class="quality">Poor</span>
+                    <span class="range">(Below 150 DPI)</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
