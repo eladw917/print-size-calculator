@@ -223,7 +223,7 @@ function handleImageUpload(imageData) {
 
   // Update image display
   elements.uploadedImage.src = imageData.src;
-  elements.imageTitleHeader.textContent = `Uploaded Image (${imageData.width} x ${imageData.height} pixels)`;
+  elements.imageTitleHeader.textContent = 'Print Summary';
 
   // Show DPI preview when image loads
   elements.uploadedImage.onload = () => {
@@ -567,9 +567,9 @@ function updateSummary() {
       
       // Build natural flowing text - start with quality
       const qualityText = calculatedGrade.charAt(0).toUpperCase() + calculatedGrade.slice(1).toLowerCase();
-      let summaryText = `The print quality will be <strong>${qualityText}</strong> at ${roundedDpi} DPI. `;
+      let summaryText = `At selected size ${appState.selectedSize} the quality of the print will be <strong>${qualityText}</strong> at ${roundedDpi} DPI. `;
       
-      summaryText += `You've selected a ${appState.selectedSize} frame measuring ${frameDisplay}. `;
+      summaryText += `The frame measures ${frameDisplay}. `;
       summaryText += `In these measurements, print your image at ${createMeasurementWithInfo2D(printedImageWidth, printedImageHeight, printedCmWidth, printedCmHeight)}. `;
       
       if (appState.fittingMode === 'fit') {
@@ -782,6 +782,7 @@ function updateImageAnalysis() {
         elements.imageAnalysis.innerHTML = `
           <div class="analysis-text">
             <div class="analysis-summary">
+              <strong>Original Image Size:</strong> ${imgWidth} × ${imgHeight} pixels<br>
               <strong>Frame Size:</strong> ${sizeDisplay}<br>
               <strong>Printed Image Size:</strong> ${printedImageDisplay}<br>
               <strong>Frame Coverage:</strong> ${frameCoveragePercentage}%<br>
