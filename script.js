@@ -28,6 +28,8 @@ const elements = {
   summaryText: document.getElementById('summary-text'),
   uploadedImage: document.getElementById('uploaded-image'),
   imageAnalysis: document.getElementById('image-analysis'),
+  analysisInfoIcon: document.getElementById('analysis-info-icon'),
+  analysisTooltip: document.getElementById('analysis-tooltip'),
   qualityCanvas: document.getElementById('quality-canvas'),
   previewFrame: document.getElementById('preview-frame'),
   fittingControls: document.getElementById('fitting-controls'),
@@ -779,32 +781,40 @@ function updateImageAnalysis() {
         const calculatedGrade = getGradeText(calculatedDpi);
         const calculatedExplanation = getGradeExplanation(calculatedDpi);
         
-        elements.imageAnalysis.innerHTML = `
-          <div class="analysis-text">
-            <div class="analysis-summary">
-              <strong>Original Image Size:</strong> ${imgWidth} × ${imgHeight} pixels<br>
-              <strong>Frame Size:</strong> ${sizeDisplay}<br>
-              <strong>Printed Image Size:</strong> ${printedImageDisplay}<br>
-              <strong>Frame Coverage:</strong> ${frameCoveragePercentage}%<br>
-              <strong>Image Coverage:</strong> ${imageCoveragePercentage}%<br>
-              <strong>Quality:</strong> ${calculatedGrade} (${roundedDpi} DPI)<br>
-              <strong>Details:</strong> ${calculatedExplanation}
-            </div>
-          </div>
+        // Update tooltip content for info icon
+        const tooltipContent = `
+          <strong>Original Image Size:</strong> ${imgWidth} × ${imgHeight} pixels<br>
+          <strong>Frame Size:</strong> ${sizeDisplay}<br>
+          <strong>Printed Image Size:</strong> ${printedImageDisplay}<br>
+          <strong>Frame Coverage:</strong> ${frameCoveragePercentage}%<br>
+          <strong>Image Coverage:</strong> ${imageCoveragePercentage}%<br>
+          <strong>Quality:</strong> ${calculatedGrade} (${roundedDpi} DPI)<br>
+          <strong>Details:</strong> ${calculatedExplanation}
         `;
+        if (elements.analysisTooltip) {
+          elements.analysisTooltip.innerHTML = tooltipContent;
+        }
+        elements.analysisInfoIcon.style.display = 'inline-block';
+        
+        // Clear the image-analysis div
+        elements.imageAnalysis.innerHTML = '';
         
         // Update DPI quality preview with calculated DPI based on printed image size
         updateDpiPreview(calculatedDpi, sizeInfo);
       } else {
-        elements.imageAnalysis.innerHTML = `
-          <div class="analysis-text">
-            <div class="analysis-summary">
-              <strong>Frame Size:</strong> ${sizeDisplay}<br>
-              <strong>Quality:</strong> ${selectedResult.grade} (${selectedResult.dpi} DPI)<br>
-              <strong>Details:</strong> ${selectedResult.explanation}
-            </div>
-          </div>
+        // Update tooltip content for info icon (fallback case)
+        const tooltipContent = `
+          <strong>Frame Size:</strong> ${sizeDisplay}<br>
+          <strong>Quality:</strong> ${selectedResult.grade} (${selectedResult.dpi} DPI)<br>
+          <strong>Details:</strong> ${selectedResult.explanation}
         `;
+        if (elements.analysisTooltip) {
+          elements.analysisTooltip.innerHTML = tooltipContent;
+        }
+        elements.analysisInfoIcon.style.display = 'inline-block';
+        
+        // Clear the image-analysis div
+        elements.imageAnalysis.innerHTML = '';
         
         // Update DPI quality preview with original DPI
         updateDpiPreview(selectedResult.dpi, sizeInfo);
@@ -813,6 +823,11 @@ function updateImageAnalysis() {
   } else {
     // Clear analysis display when no frame is selected (summary shows max size info)
     elements.imageAnalysis.innerHTML = '';
+    
+    // Hide the info icon when no frame is selected
+    if (elements.analysisInfoIcon) {
+      elements.analysisInfoIcon.style.display = 'none';
+    }
 
     // Hide fitting controls when no size is selected
     elements.fittingControls.classList.add('hidden');
