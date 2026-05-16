@@ -1,11 +1,10 @@
+'use strict';
+
 // State management - replacing React useState
 let appState = {
   image: null,
   analysis: null,
   selectedSize: null,
-  selectedGrade: null,
-  selectedExplanation: null,
-  backgroundColor: '',
   customSizes: [],
   fittingMode: 'fit', // 'fit' or 'fill'
   imageSizePercent: 100 // Percentage of image size relative to frame (50-200, can exceed frame)
@@ -34,18 +33,11 @@ const elements = {
   previewFrame: document.getElementById('preview-frame'),
   fittingControls: document.getElementById('fitting-controls'),
   sizeGrid: document.getElementById('size-grid'),
-  sizeDetails: document.getElementById('size-details'),
-  selectedSize: document.getElementById('selected-size'),
-  selectedGrade: document.getElementById('selected-grade'),
-  selectedDpi: document.getElementById('selected-dpi'),
-  selectedExplanation: document.getElementById('selected-explanation'),
   uploadButton: document.querySelector('.upload-button'),
   urlButton: document.querySelector('.url-button'),
   urlForm: document.querySelector('.url-form'),
   urlInput: document.querySelector('.url-input'),
-  urlSubmit: document.querySelector('.submit-button'),
   customSizeForm: document.querySelector('.custom-size-form'),
-  customSizeInputs: document.querySelectorAll('.custom-size-form input'),
   unitToggle: document.querySelector('.unit-toggle'),
   cancelButton: document.querySelector('.cancel-button'),
   fileInput: document.querySelector('.hidden-input')
@@ -59,40 +51,40 @@ const COMMON_SIZES = [
   { name: 'A5', width: 5.8, height: 8.3, unit: '', description: 'Half of A4, used for notebooks' },
   { name: '8x10', width: 8, height: 10, unit: 'in', description: 'Standard photo size for portraits' },
   { name: 'A4', width: 8.3, height: 11.7, unit: '', description: 'Standard letter size paper' },
-  { name: '10x15', width: 10, height: 15, unit: 'cm', description: 'Common photo size' },
+  { name: '10x15', width: 10 / 2.54, height: 15 / 2.54, unit: 'cm', description: 'Common photo size' },
   { name: '11x14', width: 11, height: 14, unit: 'in', description: 'Common print size for photos' },
   { name: 'A3', width: 11.7, height: 16.5, unit: '', description: 'Used for posters and drawings' },
   { name: '12x18', width: 12, height: 18, unit: 'in', description: 'Common poster size' },
-  { name: '13x18', width: 13, height: 18, unit: 'cm', description: 'Common photo size' },
-  { name: '15x20', width: 15, height: 20, unit: 'cm', description: 'Common photo size' },
+  { name: '13x18', width: 13 / 2.54, height: 18 / 2.54, unit: 'cm', description: 'Common photo size' },
+  { name: '15x20', width: 15 / 2.54, height: 20 / 2.54, unit: 'cm', description: 'Common photo size' },
   { name: '16x20', width: 16, height: 20, unit: 'in', description: 'Common size for wall art' },
   { name: '16x24', width: 16, height: 24, unit: 'in', description: 'Common poster size' },
   { name: 'A2', width: 16.5, height: 23.4, unit: '', description: 'Used for large posters' },
   { name: '18x24', width: 18, height: 24, unit: 'in', description: 'Used for movie posters' },
-  { name: '20x25', width: 20, height: 25, unit: 'cm', description: 'Common poster size' },
-  { name: '20x30', width: 20, height: 30, unit: 'cm', description: 'Common poster size' },
+  { name: '20x25', width: 20 / 2.54, height: 25 / 2.54, unit: 'cm', description: 'Common poster size' },
+  { name: '20x30', width: 20 / 2.54, height: 30 / 2.54, unit: 'cm', description: 'Common poster size' },
   { name: '24x30', width: 24, height: 30, unit: 'in', description: 'Common print size for art' },
   { name: 'A1', width: 23.4, height: 33.1, unit: '', description: 'Used for large prints and posters' },
   { name: '24x36', width: 24, height: 36, unit: 'in', description: 'Standard movie poster size' },
-  { name: '30x40', width: 30, height: 40, unit: 'cm', description: 'Common poster size' },
+  { name: '30x40', width: 30 / 2.54, height: 40 / 2.54, unit: 'cm', description: 'Common poster size' },
   { name: 'A0', width: 33.1, height: 46.8, unit: '', description: 'Used for large format prints' },
   { name: '36x48', width: 36, height: 48, unit: 'in', description: 'Large poster size' },
   { name: '30x60', width: 30, height: 60, unit: 'in', description: 'Common banner size' },
   { name: '48x72', width: 48, height: 72, unit: 'in', description: 'Extra large poster size' },
-  { name: '50x70', width: 50, height: 70, unit: 'cm', description: 'Large poster size' },
-  { name: '70x100', width: 70, height: 100, unit: 'cm', description: 'Extra large poster/banner' }
+  { name: '50x70', width: 50 / 2.54, height: 70 / 2.54, unit: 'cm', description: 'Large poster size' },
+  { name: '70x100', width: 70 / 2.54, height: 100 / 2.54, unit: 'cm', description: 'Extra large poster/banner' }
 ];
 
 // Utility functions
 function getGradeColor(dpi) {
-  if (dpi > 300) return '#10B981'; // Green - Excellent
+  if (dpi >= 300) return '#10B981'; // Green - Excellent
   if (dpi >= 200) return '#F59E0B'; // Yellow - Good
   if (dpi >= 150) return '#F97316'; // Orange - Fair
   return '#EF4444'; // Red - Poor
 }
 
 function getGradeText(dpi) {
-  if (dpi > 300) return 'Excellent';
+  if (dpi >= 300) return 'Excellent';
   if (dpi >= 200) return 'Good';
   if (dpi >= 150) return 'Fair';
   return 'Poor';
@@ -190,6 +182,20 @@ function setupEventListeners() {
       adjustImageSize(5); // Increase by 5%
     });
   }
+
+  window.addEventListener('resize', debounce(() => {
+    if (appState.image) {
+      updateImageAnalysis();
+    }
+  }, 150));
+}
+
+function debounce(fn, delay) {
+  let timer = null;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn(...args), delay);
+  };
 }
 
 // File upload handler
@@ -310,93 +316,9 @@ function renderSizeOptions() {
   addButton.className = 'size-option add-custom-size';
   addButton.textContent = '+';
   addButton.title = 'Add custom size';
-  addButton.style.backgroundColor = '#6B7280'; // Gray color for add button
   addButton.addEventListener('click', () => toggleCustomSizeForm());
 
   elements.sizeGrid.appendChild(addButton);
-}
-
-// Calculate DPI based on printed image size
-function calculateDpiFromPrintedSize(sizeInfo) {
-  if (!appState.image || !sizeInfo) return null;
-  
-  const img = appState.image;
-  const imgWidth = img.width;
-  const imgHeight = img.height;
-  const imageAspectRatio = imgWidth / imgHeight;
-  
-  // Determine if orientations match
-  const isImageLandscape = imageAspectRatio > 1;
-  const frameAspectRatio = sizeInfo.width / sizeInfo.height;
-  const isFrameLandscape = frameAspectRatio > 1;
-  
-  // Always use original frame dimensions (not swapped) for display
-  const frameWidth = sizeInfo.width;
-  const frameHeight = sizeInfo.height;
-  
-  // Account for image size percentage
-  const imageSizePercent = appState.imageSizePercent || 100;
-  const imageSizeFactor = imageSizePercent / 100;
-  
-  // For fill mode, we need to consider orientation matching
-  let effectiveFrameWidth, effectiveFrameHeight;
-  
-  if (appState.fittingMode === 'fill' && isImageLandscape !== isFrameLandscape) {
-    // In fill mode with mismatched orientations, swap the frame dimensions
-    effectiveFrameWidth = frameHeight * imageSizeFactor;
-    effectiveFrameHeight = frameWidth * imageSizeFactor;
-  } else {
-    effectiveFrameWidth = frameWidth * imageSizeFactor;
-    effectiveFrameHeight = frameHeight * imageSizeFactor;
-  }
-  
-  let printedImageWidth, printedImageHeight;
-  
-  if (appState.fittingMode === 'fill') {
-    // Fill mode: printed image size equals effective frame size
-    printedImageWidth = effectiveFrameWidth;
-    printedImageHeight = effectiveFrameHeight;
-  } else {
-    // Fit mode: calculate actual printed image size to fit within effective frame
-    let effectiveWidth = effectiveFrameWidth;
-    let effectiveHeight = effectiveFrameHeight;
-    
-    if (isImageLandscape !== isFrameLandscape) {
-      // Swap frame dimensions to match image orientation for fitting calculations
-      effectiveWidth = effectiveFrameHeight;
-      effectiveHeight = effectiveFrameWidth;
-    }
-    
-    // Calculate printed size based on effective frame
-    if (imageAspectRatio > effectiveWidth / effectiveHeight) {
-      // Image is wider - fit to effective frame width
-      const calculatedWidth = effectiveWidth;
-      const calculatedHeight = effectiveWidth / imageAspectRatio;
-      // Convert back to original frame orientation
-      if (isImageLandscape !== isFrameLandscape) {
-        printedImageWidth = calculatedHeight;
-        printedImageHeight = calculatedWidth;
-      } else {
-        printedImageWidth = calculatedWidth;
-        printedImageHeight = calculatedHeight;
-      }
-    } else {
-      // Image is taller - fit to effective frame height
-      const calculatedHeight = effectiveHeight;
-      const calculatedWidth = effectiveHeight * imageAspectRatio;
-      // Convert back to original frame orientation
-      if (isImageLandscape !== isFrameLandscape) {
-        printedImageWidth = calculatedHeight;
-        printedImageHeight = calculatedWidth;
-      } else {
-        printedImageWidth = calculatedWidth;
-        printedImageHeight = calculatedHeight;
-      }
-    }
-  }
-  
-  // Calculate DPI based on printed image size
-  return Math.min(imgWidth / printedImageWidth, imgHeight / printedImageHeight);
 }
 
 // Helper function to create measurement text with info icon for single dimension
@@ -450,8 +372,11 @@ function updateSummary() {
       
       let printedImageWidth, printedImageHeight;
       let frameCoveragePercentage, imageCoveragePercentage;
-      let marginsInfo = '';
       let hiddenImageInfo = '';
+      let marginWidthValue = 0;
+      let marginHeightValue = 0;
+      let marginWidthCmValue = 0;
+      let marginHeightCmValue = 0;
       
       if (appState.fittingMode === 'fill') {
         printedImageWidth = effectiveFrameWidth;
@@ -502,7 +427,6 @@ function updateSummary() {
         marginWidthCmValue = marginWidth > 0.01 ? marginWidthCm : 0;
         marginHeightCmValue = marginHeight > 0.01 ? marginHeightCm : 0;
         
-        marginsInfo = (marginWidthValue > 0 || marginHeightValue > 0) ? 'has_margins' : '';
       } else {
         // Fit mode
         let effectiveWidth = effectiveFrameWidth;
@@ -550,8 +474,6 @@ function updateSummary() {
         marginHeightValue = marginHeight > 0.01 ? marginHeight : 0;
         marginWidthCmValue = marginWidth > 0.01 ? marginWidthCm : 0;
         marginHeightCmValue = marginHeight > 0.01 ? marginHeightCm : 0;
-        
-        marginsInfo = (marginWidthValue > 0 || marginHeightValue > 0) ? 'has_margins' : '';
         
         // In fit mode, entire image is visible, nothing is cropped
         hiddenImageInfo = '';
@@ -916,6 +838,7 @@ function updateDpiPreview(dpi, sizeInfo) {
   const scaleX = effectiveFrameWidth / img.naturalWidth;
   const scaleY = effectiveFrameHeight / img.naturalHeight;
   let scale, destWidth, destHeight, destX, destY;
+  ctx.imageSmoothingEnabled = dpi >= 150;
 
   if (appState.fittingMode === 'fill') {
     // Fill mode: use larger scale to fill the effective frame (may crop)
@@ -972,9 +895,6 @@ function updateDpiPreview(dpi, sizeInfo) {
     // Draw the pixelated version back to the image area (scales up, creating pixelation)
     ctx.imageSmoothingEnabled = false; // Disable smoothing to show pixels clearly
     ctx.drawImage(tempCanvas, destX, destY, destWidth, destHeight);
-  } else {
-    // High DPI - enable smoothing for crisp image
-    ctx.imageSmoothingEnabled = true;
   }
 }
 
@@ -1093,9 +1013,6 @@ function updatePreviewFrame(sizeInfo) {
 // Handle size selection
 function selectSize(result, sizeInfo) {
   appState.selectedSize = result.size;
-  appState.selectedGrade = result.grade;
-  appState.selectedExplanation = result.explanation;
-  appState.backgroundColor = getGradeColor(result.dpi);
 
   // Reset fitting mode and image size to defaults when selecting a new size
   appState.fittingMode = 'fit';
@@ -1115,9 +1032,6 @@ function selectSize(result, sizeInfo) {
 
   // Update DOM - all info now shown in image analysis
   updateImageAnalysis();
-
-  // Hide the separate size details panel since info is now in analysis
-  elements.sizeDetails.classList.add('hidden');
 
   // Update selected button
   document.querySelectorAll('.size-option').forEach(btn => {
@@ -1188,30 +1102,26 @@ function handleUrlSubmit(event) {
     const img = new Image();
     img.crossOrigin = 'Anonymous';
     img.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = img.width;
-      canvas.height = img.height;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0);
-      canvas.toBlob(blob => {
-        const file = new File([blob], 'image.jpg', { type: 'image/jpeg' });
-        const imageData = {
-          file: file,
-          width: img.width,
-          height: img.height,
-          src: url
-        };
-        handleImageUpload(imageData);
-      }, 'image/jpeg');
+      const imageData = {
+        file: { name: url },
+        width: img.naturalWidth || img.width,
+        height: img.naturalHeight || img.height,
+        src: url
+      };
+      handleImageUpload(imageData);
     };
     img.onerror = () => {
-      console.error('Error loading image from URL');
+      showError('Could not load that image URL. Try downloading the image and using Upload Image instead.');
     };
     img.src = url;
   }
 
   elements.urlForm.classList.add('hidden');
   elements.urlInput.value = '';
+}
+
+function showError(message) {
+  window.alert(message);
 }
 
 // Toggle custom size form
@@ -1268,8 +1178,8 @@ function handleCustomSizeSubmit(event) {
     let widthInInches, heightInInches;
 
     if (unit === 'cm') {
-      widthInInches = Math.round(width / 2.54);
-      heightInInches = Math.round(height / 2.54);
+      widthInInches = width / 2.54;
+      heightInInches = height / 2.54;
     } else {
       widthInInches = width;
       heightInInches = height;
@@ -1437,18 +1347,6 @@ function parseRatio(ratioText) {
   return null;
 }
 
-// Calculate greatest common divisor
-function calculateGCD(a, b) {
-  a = Math.abs(a);
-  b = Math.abs(b);
-  while (b !== 0) {
-    const temp = b;
-    b = a % b;
-    a = temp;
-  }
-  return a;
-}
-
 // Remove custom size
 function removeCustomSize(sizeName) {
   appState.customSizes = appState.customSizes.filter(size => size.name !== sizeName);
@@ -1456,9 +1354,6 @@ function removeCustomSize(sizeName) {
   // If the removed size was selected, clear selection
   if (appState.selectedSize === sizeName) {
     appState.selectedSize = null;
-    appState.selectedGrade = null;
-    appState.selectedExplanation = null;
-    appState.backgroundColor = '';
     updateImageAnalysis(); // Update to show max size again
     updateDpiPreview(300, null); // Reset to perfect quality preview
   }

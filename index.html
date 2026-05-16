@@ -32,11 +32,11 @@
       <div class="button-container">
         <button type="button" class="upload-button">
           <span>Upload Image</span>
-          <input type="file" class="hidden-input" accept="image/*">
         </button>
+        <input type="file" class="hidden-input" accept="image/*" aria-label="Upload image">
 
-        <div style="position: relative;">
-          <button class="url-button">
+        <div class="url-input-container">
+          <button type="button" class="url-button">
             <span>Enter URL</span>
           </button>
 
@@ -45,6 +45,8 @@
               type="url"
               placeholder="Paste image URL here"
               class="url-input"
+              aria-label="Image URL"
+              required
             >
             <button type="submit" class="submit-button">
               Submit
@@ -64,9 +66,9 @@
         </div>
         <div class="results-container">
           <div class="image-preview">
-            <h3>How will it look?<span id="analysis-info-icon" class="analysis-info-icon" style="display: none;"><span class="analysis-tooltip" id="analysis-tooltip"></span>i</span></h3>
+            <h3>How will it look?<span id="analysis-info-icon" class="analysis-info-icon hidden-inline"><span class="analysis-tooltip" id="analysis-tooltip"></span>i</span></h3>
             <div class="image-display">
-              <img id="uploaded-image" alt="Uploaded image" style="display: none;">
+              <img id="uploaded-image" alt="Uploaded image" class="hidden-image">
               <div id="preview-frame" class="preview-frame hidden"></div>
               <canvas id="quality-canvas" width="368" height="218"></canvas>
             </div>
@@ -111,28 +113,28 @@
             <div class="grade-legend">
               <div class="legend-items">
                 <div class="legend-item">
-                  <span class="color-swatch" style="background-color: #10B981"></span>
+                  <span class="color-swatch color-excellent"></span>
                   <div class="legend-text">
                     <span class="quality">Excellent</span>
                     <span class="range">(300+ DPI)</span>
                   </div>
                 </div>
                 <div class="legend-item">
-                  <span class="color-swatch" style="background-color: #F59E0B"></span>
+                  <span class="color-swatch color-good"></span>
                   <div class="legend-text">
                     <span class="quality">Good</span>
-                    <span class="range">(200-300 DPI)</span>
+                    <span class="range">(200-299 DPI)</span>
                   </div>
                 </div>
                 <div class="legend-item">
-                  <span class="color-swatch" style="background-color: #F97316"></span>
+                  <span class="color-swatch color-fair"></span>
                   <div class="legend-text">
                     <span class="quality">Fair</span>
                     <span class="range">(150-199 DPI)</span>
                   </div>
                 </div>
                 <div class="legend-item">
-                  <span class="color-swatch" style="background-color: #EF4444"></span>
+                  <span class="color-swatch color-poor"></span>
                   <div class="legend-text">
                     <span class="quality">Poor</span>
                     <span class="range">(Below 150 DPI)</span>
@@ -140,14 +142,6 @@
                 </div>
               </div>
             </div>
-          </div>
-
-          <div class="size-details hidden" id="size-details">
-            <h3>Print Details</h3>
-            <p><strong>Size:</strong> <span id="selected-size"></span></p>
-            <p><strong>Grade:</strong> <span id="selected-grade"></span></p>
-            <p><strong>DPI:</strong> <span id="selected-dpi"></span></p>
-            <p id="selected-explanation"></p>
           </div>
         </div>
       </div>
